@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Storage-Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Storage-Trainer">
+<meta name="theme-color" content="#FBFBF9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1215" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<style>
+:root{
+  --paper:#FBFBF9; --surface:#FFFFFF; --surface-2:#F3F4F2;
+  --ink:#16191D; --ink-2:#4A4F57; --ink-3:#7C828B;
+  --line:#E2E4E7; --line-2:#CFD3D8;
+  --accent:#1F5C8C; --accent-fg:#FFFFFF; --accent-soft:#E8F0F7;
+  --ok:#2E6F4E; --ok-soft:#E7F2EB;
+  --bad:#9E3131; --bad-soft:#FAEBEB;
+  color-scheme: light dark;
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1215; --surface:#171B20; --surface-2:#1E232A;
+    --ink:#E8EAED; --ink-2:#AEB4BC; --ink-3:#787F88;
+    --line:#2A3038; --line-2:#3A424C;
+    --accent:#6BA8DC; --accent-fg:#0F1215; --accent-soft:#16293A;
+    --ok:#6FC08E; --ok-soft:#17291F;
+    --bad:#E08585; --bad-soft:#2C1A1A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1215; --surface:#171B20; --surface-2:#1E232A;
+  --ink:#E8EAED; --ink-2:#AEB4BC; --ink-3:#787F88;
+  --line:#2A3038; --line-2:#3A424C;
+  --accent:#6BA8DC; --accent-fg:#0F1215; --accent-soft:#16293A;
+  --ok:#6FC08E; --ok-soft:#17291F;
+  --bad:#E08585; --bad-soft:#2C1A1A;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:560px; margin:0 auto; padding:20px 18px 40px;}
+h1{font-size:23px; font-weight:600; letter-spacing:-0.01em; margin:0 0 4px;}
+.lede{color:var(--ink-3); font-size:14px; margin:0 0 26px;}
+.setting{margin-bottom:20px}
+.setting > span{display:block; font-size:13px; color:var(--ink-3); margin-bottom:8px}
+.seg{display:flex; border:1px solid var(--line-2); border-radius:10px; overflow:hidden}
+.seg button{
+  flex:1; appearance:none; border:0; background:var(--surface); color:var(--ink-2);
+  font:inherit; font-size:13.5px; padding:10px 4px; cursor:pointer;
+  border-right:1px solid var(--line-2);
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent); color:var(--accent-fg); font-weight:500}
+.chips{display:flex; flex-wrap:wrap; gap:7px}
+.chips button{
+  appearance:none; border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2);
+  font:inherit; font-size:13.5px; padding:8px 13px; border-radius:999px; cursor:pointer;
+}
+.chips button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-fg); font-weight:500}
+.primary{
+  display:block; width:100%; appearance:none; border:0; border-radius:10px;
+  background:var(--ink); color:var(--paper); font:inherit; font-size:16px; font-weight:500;
+  padding:15px; cursor:pointer; margin-top:8px;
+}
+.ghost{
+  display:block; width:100%; appearance:none; border:1px solid var(--line-2); border-radius:10px;
+  background:transparent; color:var(--ink-2); font:inherit; font-size:15px;
+  padding:13px; cursor:pointer; margin-top:10px;
+}
+.stats{font-size:13px; color:var(--ink-3); margin-top:22px; padding-top:16px; border-top:1px solid var(--line)}
+.bar{display:flex; gap:3px; margin-bottom:22px}
+.bar i{flex:1; height:4px; border-radius:2px; background:var(--line)}
+.bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)} .bar i.now{background:var(--ink-3)}
+.meta{display:flex; justify-content:space-between; font-size:13px; color:var(--ink-3); margin-bottom:10px}
+.tag{color:var(--accent)}
+.q{font-size:20px; font-weight:500; line-height:1.4; margin:0 0 20px; letter-spacing:-0.005em}
+.opts{display:flex; flex-direction:column; gap:9px}
+.opt{
+  display:flex; gap:11px; align-items:flex-start; text-align:left; width:100%;
+  appearance:none; background:var(--surface); border:1px solid var(--line-2);
+  border-radius:11px; padding:13px 14px; font:inherit; font-size:15px; line-height:1.45;
+  color:var(--ink); cursor:pointer;
+}
+.opt:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.opt .k{
+  flex:0 0 22px; height:22px; border-radius:6px; background:var(--surface-2);
+  color:var(--ink-3); font-size:12px; display:flex; align-items:center; justify-content:center; margin-top:1px;
+}
+.opt.pick-ok{border-color:var(--ok); background:var(--ok-soft)}
+.opt.pick-ok .k{background:var(--ok); color:var(--surface)}
+.opt.pick-bad{border-color:var(--bad); background:var(--bad-soft)}
+.opt.pick-bad .k{background:var(--bad); color:var(--surface)}
+.opt[disabled]{cursor:default; opacity:1}
+.opt.dim{opacity:.5}
+.verdict{margin-top:20px; padding:14px 15px; border-radius:11px; background:var(--surface-2)}
+.verdict b{display:block; font-weight:600; font-size:15px; margin-bottom:5px}
+.verdict.win b{color:var(--ok)} .verdict.lose b{color:var(--bad)}
+.verdict p{margin:0; font-size:14.5px; color:var(--ink-2); line-height:1.55}
+.hintbtn{background:none;border:0;color:var(--accent);font:inherit;font-size:14px;padding:12px 0 0;cursor:pointer}
+.hinttext{font-size:14px;color:var(--ink-3);margin:10px 0 0}
+.score{font-size:46px; font-weight:600; letter-spacing:-0.02em; margin:6px 0 2px}
+.miss{border-top:1px solid var(--line); padding-top:14px; margin-top:20px}
+.miss h2{font-size:14px; font-weight:500; color:var(--ink-3); margin:0 0 12px}
+.miss article{margin-bottom:16px}
+.miss p{margin:0; font-size:14.5px; line-height:1.5}
+.miss .mq{color:var(--ink-2)}
+.miss .ma{color:var(--ok); font-weight:500}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="start">
+  <h1>Storage-Protokolle</h1>
+  <p class="lede">Jede Runde zieht neue Fragen aus dem Pool. Was du falsch hattest, kommt häufiger dran.</p>
+
+  <div class="setting">
+    <span>Thema</span>
+    <div class="chips" id="segTopic">
+      <button data-v="alle" aria-pressed="true">Alles</button>
+      <button data-v="proto" aria-pressed="false">Protokolle</button>
+      <button data-v="kap" aria-pressed="false">Kapazität &amp; RAID</button>
+      <button data-v="bak" aria-pressed="false">Backup &amp; HA</button>
+      <button data-v="srv" aria-pressed="false">Server &amp; Verkabelung</button>
+      <button data-v="hpe" aria-pressed="false">HPE</button>
+      <button data-v="szen" aria-pressed="false">Szenarien</button>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span>Umfang</span>
+    <div class="seg" id="segLevel">
+      <button data-v="basis" aria-pressed="true">Grundlagen</button>
+      <button data-v="alle" aria-pressed="false">Alles</button>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span>Fragen pro Runde</span>
+    <div class="seg" id="segCount">
+      <button data-v="5" aria-pressed="false">5</button>
+      <button data-v="10" aria-pressed="true">10</button>
+      <button data-v="15" aria-pressed="false">15</button>
+    </div>
+  </div>
+
+  <button class="primary" id="go">Runde starten</button>
+  <p class="stats" id="poolInfo"></p>
+  <button class="ghost hide" id="reset">Fortschritt zurücksetzen</button>
+</section>
+
+<section id="quiz" class="hide">
+  <div class="bar" id="bar"></div>
+  <div class="meta"><span id="pos"></span><span class="tag" id="tag"></span></div>
+  <h2 class="q" id="qtext"></h2>
+  <div class="opts" id="opts"></div>
+  <button class="hintbtn hide" id="hintBtn">Hinweis anzeigen</button>
+  <p class="hinttext hide" id="hintText"></p>
+  <div class="verdict hide" id="verdict"><b id="vhead"></b><p id="vbody"></p></div>
+  <button class="primary hide" id="next">Weiter</button>
+</section>
+
+<section id="end" class="hide">
+  <p class="lede" style="margin-bottom:0">Runde beendet</p>
+  <div class="score" id="score"></div>
+  <p class="lede" id="scoreNote"></p>
+  <button class="primary" id="again">Neue Runde</button>
+  <button class="ghost hide" id="redo">Nur die Falschen wiederholen</button>
+  <button class="ghost" id="home">Zurück zum Start</button>
+  <div class="miss hide" id="missBox"><h2>Das saß noch nicht</h2><div id="missList"></div></div>
+</section>
+
+</div>
+
+<script>
+const POOL = [
+{id:"b01",lvl:"basis",q:"Welche drei Grundtypen von Storage-Zugriff gibt es?",
+ o:["SAN, NAS und Tape","Block, File und Object","Primär, Sekundär und Archiv","SSD, HDD und Cloud"],a:1,
+ e:"Block liefert rohe Laufwerke, File fertige Freigaben, Object einen Speicher mit Objekten und Metadaten über HTTP. FC, iSCSI, NFS, SMB und S3 sind die Protokolle innerhalb dieser drei Familien."},
+{id:"b02",lvl:"basis",q:"Was ist der grundsätzliche Unterschied zwischen Block und File?",
+ o:["Block ist immer schneller als File","File kann keine Snapshots","Bei Block formatiert der Server das Volume selbst, bei File liefert das Storage das Dateisystem","Block funktioniert nur über Glasfaser"],a:2,
+ h:"Wer legt das Dateisystem an – Server oder Storage?",
+ e:"Beim Blockzugriff bekommt der Server ein rohes Volume und formatiert es selbst, wie eine eingebaute Festplatte. Beim Filezugriff bringt das Storage das Dateisystem mit, der Server sieht nur Ordner und Dateien."},
+{id:"b03",lvl:"basis",q:"Was ist Fibre Channel (FC)?",
+ o:["Eine Erweiterung des vorhandenen Ethernet-Netzes","Eine Steckverbindung für Festplatten im Server","Ein Protokoll für Dateifreigaben","Ein eigenständiges Speichernetz mit eigenen Switches und HBAs"],a:3,
+ e:"FC ist ein komplett eigenes Netz neben dem LAN, mit eigenen Switches, eigenen Karten im Server und Glasfaser. Diese Trennung macht es stabil und planbar, gleichzeitig aber teuer."},
+{id:"b04",lvl:"basis",q:"Was macht iSCSI?",
+ o:["Es transportiert SCSI-Befehle über TCP/IP im normalen Ethernet","Es transportiert SCSI-Befehle über Glasfaser","Es ist ein Dateisystem für Linux-Server","Es ist ein Verfahren zur Datensicherung"],a:0,
+ h:"Das \"i\" steht für Internet.",
+ e:"iSCSI verpackt dieselben SCSI-Befehle, die FC über Glasfaser transportiert, in TCP/IP-Pakete. Dadurch genügt normales Ethernet – dafür hängt die Leistung stark an einem sauber geplanten Netz."},
+{id:"b05",lvl:"basis",q:"Was bedeutet SAS direct attach?",
+ o:["Das Storage hängt im normalen Firmennetz","Das Storage wird über Glasfaser-Switches angebunden","Das Storage wird ohne Switch direkt per Kabel an den Server angeschlossen","Das Storage liegt in der Cloud"],a:2,
+ e:"Beim Direct Attach hängt das Storage unmittelbar am Server, es gibt gar kein Speichernetz. Billig und schnell, aber begrenzt in Kabellänge und Anzahl der Server."},
+{id:"b06",lvl:"basis",q:"Was ist die Grundidee von NVMe-over-Fabrics?",
+ o:["Eine neue Art der Verkabelung","Das NVMe-Protokoll der SSDs wird über das Netz verlängert, ohne Umweg über SCSI","Ein Verfahren zur Datenreduktion","Ein Ersatz für Dateifreigaben"],a:1,
+ h:"Was sprechen moderne SSDs intern?",
+ e:"SSDs sprechen intern NVMe. Klassische Protokolle übersetzen das erst nach SCSI und zurück. NVMe-oF spart den Umweg und nutzt viele parallele Warteschlangen statt einer – weniger Latenz, weniger CPU-Last."},
+{id:"b07",lvl:"basis",q:"Welches File-Protokoll ist in einer Windows- und Active-Directory-Umgebung das natürliche?",
+ o:["NFS","SMB","iSCSI","S3"],a:1,
+ e:"SMB ist das Windows-Freigabeprotokoll und hängt direkt an Active Directory, inklusive der gewohnten NTFS-Berechtigungen. NFS ist das Gegenstück aus der Unix- und Linux-Welt."},
+{id:"b08",lvl:"basis",q:"Was ist typisch für Object Storage (S3)?",
+ o:["Die Anwendung sieht ein Laufwerk wie C:","Der Zugriff läuft über ein SAN","Die Daten liegen in einem klassischen Ordnerbaum","Daten liegen als Objekte mit Metadaten in Buckets, Zugriff über HTTP"],a:3,
+ h:"Wie spricht eine Anwendung S3 an?",
+ e:"S3 kennt weder Laufwerke noch Ordnerbäume. Dateien liegen als Objekte samt Metadaten in Buckets und werden über HTTP angesprochen. Das skaliert praktisch unbegrenzt und ist günstig."},
+{id:"b09",lvl:"basis",q:"Was ist eine LUN?",
+ o:["Ein logisches Volume, das dem Server als rohe Festplatte präsentiert wird","Ein Benutzerkonto auf dem Storage","Eine Netzwerkadresse im SAN","Ein Dateisystem des Herstellers"],a:0,
+ e:"Die LUN ist die Einheit, die ein Blockstorage nach außen gibt. Der Server sieht sie wie eine lokale Platte und legt selbst sein Dateisystem darauf an."},
+{id:"b10",lvl:"basis",q:"Wofür steht SAN?",
+ o:["Storage Access Node","Ein dediziertes Netz für Blockzugriff (Storage Area Network)","Ein Dateiserver im LAN","Ein Verfahren zur Spiegelung von Daten"],a:1,
+ e:"Ein SAN ist das Netz zwischen Servern und Blockstorage, klassisch über FC, alternativ über iSCSI. Es liefert Blöcke, keine Dateien."},
+{id:"b11",lvl:"basis",q:"Wofür steht NAS?",
+ o:["Ein Storage, das Dateifreigaben über das LAN bereitstellt","Ein besonders schnelles SAN","Ein Backup-Verfahren","Ein Verbund mehrerer Festplatten"],a:0,
+ e:"Ein NAS liefert fertige Dateifreigaben über NFS oder SMB. Das Dateisystem liegt auf dem Storage, nicht auf dem Server."},
+{id:"b12",lvl:"basis",q:"Was ist ein HBA?",
+ o:["Ein Switch im Speichernetz","Ein Verwaltungswerkzeug des Herstellers","Die Karte im Server, die ihn ans FC-SAN anbindet","Ein Cache-Modul im Storage"],a:2,
+ e:"Der Host Bus Adapter ist das FC-Gegenstück zur Netzwerkkarte. Bei iSCSI reicht dagegen eine normale Ethernet-Karte."},
+{id:"b13",lvl:"basis",q:"Wozu dient Multipathing?",
+ o:["Zur Verschlüsselung der Datenübertragung","Um mehrere physische Pfade zum selben Volume für Ausfallsicherheit und Lastverteilung zu nutzen","Um mehrere Volumes zu einem zusammenzufassen","Um Daten auf zwei Standorte zu spiegeln"],a:1,
+ e:"Fällt ein Pfad aus, übernimmt der andere ohne Unterbrechung. Deshalb werden Blockanbindungen grundsätzlich doppelt ausgelegt, bei FC über zwei getrennte Fabrics."},
+{id:"b14",lvl:"basis",q:"Welches Blockprotokoll kommt ohne Spezialhardware aus?",
+ o:["FC","FCoE","iSCSI","FC-NVMe"],a:2,
+ e:"iSCSI läuft auf normalen Ethernet-Karten und -Switches. Das macht es günstig und routbar – die Leistung hängt dafür komplett am Netzdesign."},
+{id:"b15",lvl:"basis",q:"Welches File-Protokoll wird typischerweise als VMware-Datastore genutzt?",
+ o:["SMB","NFS","S3","FTP"],a:1,
+ e:"VMware nutzt für Filezugriff NFS. SMB wird als Datastore nicht unterstützt und ist dort die Windows-Dateifreigabe für Endanwender."},
+{id:"b16",lvl:"basis",q:"Wofür wird S3 im Rechenzentrum am häufigsten eingesetzt?",
+ o:["Als Datastore für virtuelle Maschinen","Als Ablage für Datenbanken","Als Ziel für Backup und Archiv","Als Home-Verzeichnis für Benutzer"],a:2,
+ e:"Skalierung, Preis pro TB und Unveränderbarkeit machen S3 zum Standardziel für Backup und Archiv. Für aktive Workloads ist die Latenz zu hoch."},
+{id:"b17",lvl:"basis",q:"Was beschreibt Latenz?",
+ o:["Die Datenmenge pro Sekunde","Die Zeit, bis eine einzelne Anfrage beantwortet ist","Die Anzahl gleichzeitiger Verbindungen","Die Kapazität des Systems"],a:1,
+ e:"Latenz ist Wartezeit pro Zugriff, Durchsatz die Menge pro Zeit. Datenbanken und VDI leiden unter Latenz, Backups brauchen Durchsatz."},
+{id:"b18",lvl:"basis",q:"Was sind IOPS?",
+ o:["Die übertragene Datenmenge pro Sekunde","Die Anzahl der Ein-/Ausgabeoperationen pro Sekunde","Die Antwortzeit einer Anfrage","Die Anzahl der Laufwerke im System"],a:1,
+ e:"IOPS zählen Operationen, MB/s messen Menge. Viele kleine Zugriffe erzeugen hohe IOPS bei geringem Durchsatz, große sequenzielle Zugriffe genau umgekehrt."},
+{id:"b19",lvl:"basis",q:"Warum legt man iSCSI in ein eigenes, dediziertes VLAN?",
+ o:["Weil iSCSI sonst nicht funktioniert","Um Storage-Verkehr vom übrigen LAN zu trennen und stabile Leistung zu sichern","Weil iSCSI nicht routbar ist","Um Lizenzkosten zu sparen"],a:1,
+ e:"Technisch läuft iSCSI auch im Produktiv-LAN. Ohne Trennung konkurriert der Speicherverkehr aber mit allem anderen, und die Latenz wird unvorhersehbar."},
+{id:"b20",lvl:"basis",q:"Welches Protokoll gehört in einem Neudesign nicht mehr eingeplant?",
+ o:["iSCSI","FCoE","SMB3","NVMe/TCP"],a:1,
+ e:"FCoE braucht DCB und damit denselben Aufwand wie RoCE, bietet gegenüber iSCSI und NVMe/TCP aber keinen Vorteil mehr. Reines Legacy."},
+{id:"b21",lvl:"basis",q:"Was ist NVMe ursprünglich?",
+ o:["Ein Netzwerkprotokoll für Storage","Das Protokoll, mit dem SSDs direkt über PCIe angesprochen werden","Ein Dateisystem für Flash","Ein Verfahren zur Datenkomprimierung"],a:1,
+ e:"NVMe wurde für lokale Flash-Laufwerke am PCIe-Bus entwickelt. NVMe-over-Fabrics bringt dasselbe Protokoll über FC oder Ethernet zum externen Array."},
+{id:"b22",lvl:"basis",q:"Wie greift eine Anwendung auf S3 zu?",
+ o:["Über einen Laufwerksbuchstaben","Über eine SMB-Freigabe","Über HTTP(S) mit einer eigenen API","Über iSCSI-Initiator"],a:2,
+ e:"S3 ist eine HTTP-API. Die Anwendung muss sie beherrschen – oder man schaltet ein Gateway davor, das eine Freigabe auf S3 abbildet."},
+{id:"b23",lvl:"basis",q:"Was ist der Hauptvorteil von FC gegenüber iSCSI?",
+ o:["Höhere maximale Kapazität","Ein eigenes, verlustfreies Netz mit planbarer Latenz","Geringere Anschaffungskosten","Einfachere Administration"],a:1,
+ e:"FC ist von Haus aus verlustfrei und vom übrigen Netz getrennt. Das kostet Infrastruktur und Know-how, liefert dafür deterministisches Verhalten."},
+{id:"b24",lvl:"basis",q:"Zwei bis vier Hosts, minimales Budget, keine Skalierung nötig – welche Anbindung passt?",
+ o:["iSCSI über dediziertes 10-GbE-VLAN","SAS direct attach","FC 32G mit zwei Fabrics","NFS"],a:1,
+ e:"SAS direct attach spart das komplette Speichernetz und ist damit die günstigste und latenzärmste Variante. Der Preis sind Kabellängen und fehlender Skalierungspfad."},
+{id:"b25",lvl:"basis",q:"Welche beiden Protokolle gehören zur File-Familie?",
+ o:["iSCSI und FC","NFS und SMB","S3 und NFS","SAS und SMB"],a:1,
+ e:"NFS und SMB sind die beiden File-Protokolle. iSCSI, FC und SAS sind Block, S3 ist Object."},
+{id:"b26",lvl:"basis",q:"Was unterscheidet Object Storage von File Storage?",
+ o:["Object kennt keine Metadaten","Object hat keinen hierarchischen Ordnerbaum, sondern flache Buckets mit Objekten","Object läuft nur in der Cloud","Object ist immer schneller"],a:1,
+ e:"File organisiert Daten in Verzeichnisbäumen mit Sperren und Rechten, Object legt sie flach in Buckets ab und identifiziert sie über einen Schlüssel plus Metadaten."},
+
+{id:"v01",lvl:"tief",q:"Welches Protokoll setzt zwingend ein verlustfreies Ethernet mit PFC/ECN voraus?",
+ o:["NVMe/TCP","iSCSI","NVMe/RoCEv2","FC-NVMe"],a:2,
+ h:"RDMA verträgt keine verworfenen Frames.",
+ e:"RoCEv2 überträgt RDMA über UDP/IP und hat keinen eigenen Retransmit-Mechanismus. Das Netz muss per PFC/ECN verlustfrei konfiguriert sein – in der Praxis fehleranfällig. NVMe/TCP kommt mit normalem Ethernet aus."},
+{id:"v02",lvl:"tief",q:"Wodurch ist Fibre Channel von Haus aus verlustfrei?",
+ o:["TCP-Retransmit","Buffer-to-Buffer Credits","Jumbo Frames","Priority Flow Control (PFC)"],a:1,
+ h:"Der Sender darf erst senden, wenn der Empfänger Platz meldet.",
+ e:"B2B-Credits sind Flusskontrolle direkt auf Layer 2: Ein Frame geht erst raus, wenn der Gegenport freien Puffer signalisiert. PFC ist das nachgebaute Äquivalent im Ethernet."},
+{id:"v03",lvl:"tief",q:"Was ist die wesentliche Schwäche von NFS v3 als Datastore?",
+ o:["Keine Snapshots möglich","Nur eine TCP-Session, also kein echtes Multipathing","Maximal 2 TB pro Datastore","Keine Unterstützung für vMotion"],a:1,
+ e:"NFS v3 baut pro Mount genau eine TCP-Verbindung auf. Lastverteilung und Failover laufen nur über IP-Konstrukte. NFS v4.1 löst das mit Session Trunking bzw. pNFS."},
+{id:"v04",lvl:"tief",q:"Wie wird Pfadredundanz bei NVMe-over-Fabrics abgebildet?",
+ o:["Klassisches MPIO wie bei SCSI","ANA (Asymmetric Namespace Access)","LACP im Switch","Über Storage-seitige Replikation"],a:1,
+ h:"Das NVMe-Pendant zu ALUA.",
+ e:"NVMe-oF nutzt ANA statt MPIO. Der Support dafür ist hypervisor- und firmwareabhängig und gehört vor jedem Angebot gegen die Support-Matrix geprüft."},
+{id:"v05",lvl:"tief",q:"Was ermöglicht bei SMB3 die parallele Nutzung mehrerer Netzwerkpfade ohne LACP?",
+ o:["SMB Multichannel","Transparent Failover","SMB Direct","DFS-N"],a:0,
+ h:"Zwei der Antworten sind echte SMB3-Features, aber mit anderer Aufgabe.",
+ e:"Multichannel bündelt Pfade auf Protokollebene. SMB Direct ist die RDMA-Anbindung, Transparent Failover hält Sessions beim Cluster-Failover offen."},
+{id:"v06",lvl:"tief",q:"Warum eignet sich S3 nicht als Ablage für VMs oder Datenbanken?",
+ o:["S3 ist pro TB zu teuer","Keine In-Place-Writes und hohe Latenz","Objekte sind auf 5 GB begrenzt","S3 kennt keine Versionierung"],a:1,
+ h:"Was passiert beim Ändern eines einzelnen Blocks in einem Objekt?",
+ e:"Objekte werden immer komplett neu geschrieben, es gibt keine Änderung an Ort und Stelle. Zusammen mit der Latenz ist das für Random-I/O unbrauchbar."},
+{id:"v07",lvl:"tief",q:"Welche NVMe-oF-Variante nutzt eine vorhandene FC-Infrastruktur weiter?",
+ o:["NVMe/TCP","NVMe/RoCEv2","FC-NVMe","NVMe/iWARP"],a:2,
+ e:"FC-NVMe läuft auf bestehenden 32G/64G-Fabrics parallel zu SCSI-FC. Wo FC schon steht, ist das der Umstieg mit dem geringsten Aufwand."},
+{id:"v08",lvl:"tief",q:"Was bringt NFS v4.1 gegenüber v3 im Kern?",
+ o:["Höhere maximale Dateigröße","Session Trunking bzw. pNFS und damit echtes Multipathing","Verschlüsselung der Nutzdaten","Unterstützung für Active Directory"],a:1,
+ e:"v4.1 löst die Einzelsession von v3 auf. Ob es nutzbar ist, entscheidet der Support auf Array- und Clientseite – das ist vorab zu prüfen, nicht zuzusagen."},
+{id:"v09",lvl:"tief",q:"Welches S3-Feature schützt Backups vor Löschung durch Ransomware?",
+ o:["Erasure Coding","Object Lock (WORM)","Versionierung allein","Deduplizierung"],a:1,
+ e:"Object Lock sperrt Objekte für eine definierte Frist unveränderlich – auch gegen Administratoren. Versionierung allein reicht nicht, da Versionen löschbar bleiben."},
+{id:"v10",lvl:"tief",q:"Was bezeichnet SMB Direct?",
+ o:["SMB über RDMA","SMB ohne Verschlüsselung","Eine Direktverbindung ohne Switch","SMB mit lokalem Cache"],a:0,
+ e:"SMB Direct nutzt RDMA-fähige Karten und entlastet damit die CPU deutlich. Es wird oft zusammen mit Multichannel eingesetzt."},
+{id:"v11",lvl:"tief",q:"Welcher NVMe-oF-Transport gilt im Ethernet als künftiger Mainstream?",
+ o:["NVMe/RoCEv2","NVMe/TCP","NVMe/iWARP","FCoE"],a:1,
+ e:"NVMe/TCP stellt keine Sonderanforderungen ans Netz, ist routbar und kostet gegenüber RoCE nur minimal mehr Latenz. Deshalb setzt es sich als Standardweg durch."},
+{id:"v12",lvl:"tief",q:"Was ist bei Jumbo Frames im iSCSI-Umfeld zu beachten?",
+ o:["Sie wirken nur auf dem Storage","Die MTU muss auf allen beteiligten Ports durchgängig gleich sein","Sie ersetzen Multipathing","Sie sind nur bei 1 GbE sinnvoll"],a:1,
+ e:"Eine uneinheitliche MTU führt zu Fragmentierung oder abgerissenen Verbindungen. Server, Switch-Ports und Storage-Ports müssen denselben Wert tragen."},
+{id:"v13",lvl:"tief",q:"Worin liegt der technische Vorteil von NVMe gegenüber SCSI?",
+ o:["Höhere Kapazität pro Laufwerk","Viele parallele Queues statt einer, ohne Übersetzungsschicht","Bessere Verschlüsselung","Geringerer Platzbedarf"],a:1,
+ e:"SCSI arbeitet mit einer einzelnen Queue und begrenzter Tiefe. NVMe nutzt tausende parallele Queues und spart die SCSI-Übersetzung – das senkt CPU-Last und Latenz."},
+{id:"r01",lvl:"basis",t:"bak",q:"Was beschreibt der RPO?",
+ o:["Wie lange die Wiederherstellung dauern darf","Wie viel Datenverlust maximal zulässig ist, ausgedrückt als Zeitspanne","Wie lange Daten aufbewahrt werden müssen","Wie viele Wiederherstellungspunkte vorgehalten werden"],a:1,
+ h:"Das Objective blickt zurück, nicht nach vorn.",
+ e:"Das Recovery Point Objective misst die Spanne zwischen dem letzten brauchbaren Wiederherstellungspunkt und dem Ausfall. Es bestimmt, wie oft gesichert oder repliziert werden muss."},
+{id:"r02",lvl:"basis",t:"bak",q:"Was beschreibt der RTO?",
+ o:["Den maximal zulässigen Datenverlust","Die maximal zulässige Zeit bis zum produktiven Wiederanlauf","Die Aufbewahrungsfrist der Sicherungen","Die Laufzeit eines Backup-Jobs"],a:1,
+ e:"Das Recovery Time Objective misst die Stillstandszeit. Es bestimmt die Wiederherstellungsmethode – von der Bandrücksicherung bis zum Failover auf ein zweites Rechenzentrum."},
+{id:"r03",lvl:"basis",t:"bak",q:"Tägliche Sicherung um 22 Uhr, Ausfall am Folgetag um 16 Uhr. Wie viel Arbeit ist verloren?",
+ o:["Keine, das Backup ist aktuell","Bis zu 18 Stunden","Bis zu 6 Stunden","Bis zu 24 Stunden"],a:1,
+ e:"Der letzte brauchbare Punkt ist 22 Uhr am Vortag, der Ausfall 18 Stunden später. Genau dieser Abstand ist der real erreichte RPO – unabhängig davon, was im Konzept steht."},
+{id:"r04",lvl:"tief",t:"bak",q:"Was zählt alles in den RTO hinein?",
+ o:["Nur die reine Rückspielzeit der Daten","Auch Störungserkennung, Entscheidung, Wiederherstellung und Funktionstest","Nur die Zeit bis zum Start des Wiederherstellungsjobs","Die Zeit bis zum nächsten regulären Backup"],a:1,
+ e:"Die reine Rückspielzeit ist meist der kleinere Teil. Erkennung, Eskalation, Entscheidung und der Test vor der Freigabe fressen in der Praxis den größeren Anteil – wer nur die Rückspielzeit kalkuliert, verfehlt den zugesagten Wert."},
+{id:"r05",lvl:"tief",t:"bak",q:"Welche Größe entscheidet darüber, wie häufig repliziert oder gesichert werden muss?",
+ o:["Der RTO","Der RPO","Die Aufbewahrungsfrist","Die Kapazität des Backup-Ziels"],a:1,
+ e:"Der RPO gibt das Intervall vor: vier Stunden RPO heißt mindestens alle vier Stunden ein konsistenter Punkt. Der RTO wirkt auf etwas anderes, nämlich auf die Wahl der Wiederherstellungsmethode."},
+{id:"r06",lvl:"tief",t:"szen",q:"Eine Leistungsbeschreibung nennt „RPO 15 Minuten, RTO 4 Stunden\", ohne weitere Angaben. Was klärst du?",
+ o:["Nichts, die Werte sind eindeutig","Bezugsgröße und Szenario – gilt das je VM, je Anwendung oder je Standort, und bei Einzelausfall oder Totalverlust des Rechenzentrums","Nur die Aufbewahrungsfrist","Ob die Werte auch für Testsysteme gelten sollen"],a:1,
+ e:"Dieselbe Zahl bedeutet für eine einzelne VM etwas völlig anderes als für einen kompletten Standort. Ohne Bezugsgröße und Ausfallszenario lässt sich weder die Lösung auslegen noch der Preis belastbar rechnen."},
+{id:"r07",lvl:"tief",t:"szen",q:"Der Kunde fordert für seine ERP-Datenbank einen RPO nahe null, akzeptiert aber einen RTO von zwei Stunden. Was folgt daraus?",
+ o:["Tägliche Vollsicherung genügt","Fortlaufende Replikation ist nötig, der Wiederanlauf darf dagegen manuell erfolgen","Beides erfordert einen automatischen Failover-Cluster","Der RPO ist technisch nicht erreichbar"],a:1,
+ e:"Die beiden Werte sind unabhängig. Nahe null beim RPO verlangt synchrone oder kontinuierliche Replikation, zwei Stunden RTO lassen dagegen genug Luft für einen geordneten manuellen Schwenk – ein automatischer Cluster wäre hier überdimensioniert."},
+{id:"v14",lvl:"tief",q:"Was leistet Zoning in einem FC-SAN?",
+ o:["Es verschlüsselt den Datenverkehr","Es legt fest, welche Ports im Fabric überhaupt miteinander sprechen dürfen","Es verteilt Last auf mehrere Pfade","Es komprimiert die Übertragung"],a:1,
+ e:"Zoning arbeitet auf Fabric-Ebene, LUN-Masking auf Array-Ebene. Beides zusammen stellt sicher, dass ein Server nur seine eigenen Volumes sieht."},
+{id:"v15",lvl:"tief",q:"Was ist RDMA?",
+ o:["Ein Verfahren zur Datenspiegelung","Direkter Zugriff auf den Arbeitsspeicher der Gegenstelle, ohne Umweg über deren CPU und Betriebssystem","Ein Verschlüsselungsverfahren","Eine RAID-Variante"],a:1,
+ e:"RDMA schreibt direkt in den Speicher des Zielsystems. Das spart Kopiervorgänge und CPU-Zyklen und ist die Basis für RoCE, iWARP und SMB Direct."},
+{id:"v16",lvl:"tief",q:"Wofür steht DCB?",
+ o:["Data Center Bridging – Ethernet-Erweiterungen für verlustfreien Betrieb","Distributed Cache Buffer","Dual Controller Backplane","Dynamic Channel Bonding"],a:0,
+ e:"DCB bündelt die Erweiterungen, die Ethernet verlustfrei machen, vor allem PFC und ETS. FCoE und RoCE setzen darauf auf, NVMe/TCP und iSCSI brauchen es nicht."},
+{id:"v17",lvl:"tief",q:"Was macht Priority Flow Control (PFC)?",
+ o:["Es priorisiert Datenverkehr nach IP-Adresse","Es pausiert gezielt einzelne Prioritätsklassen statt der gesamten Verbindung","Es verwirft Pakete mit niedriger Priorität","Es verteilt Last auf mehrere Links"],a:1,
+ e:"Ohne PFC würde ein Pause-Frame den ganzen Link anhalten. PFC hält nur die Klasse an, die überzulaufen droht – die Grundlage für verlustfreies Ethernet."},
+{id:"v18",lvl:"tief",q:"Was ist der Unterschied zwischen RoCEv1 und RoCEv2?",
+ o:["v2 ist schneller","v2 läuft über UDP/IP und ist damit routbar, v1 bleibt auf Layer 2","v1 braucht kein verlustfreies Netz","v2 arbeitet ohne RDMA"],a:1,
+ e:"RoCEv1 ist ein reines Layer-2-Protokoll und endet am Router. RoCEv2 kapselt RDMA in UDP/IP und ist damit routbar – verlustfreies Ethernet braucht es trotzdem."},
+{id:"v19",lvl:"tief",q:"Was ist iWARP?",
+ o:["RDMA über TCP, kommt ohne verlustfreies Netz aus","Eine FC-Variante für lange Strecken","Ein Dateisystem für Cluster","Ein Verfahren zur Datenreduktion"],a:0,
+ e:"iWARP setzt RDMA auf TCP und erbt damit dessen Fehlerkorrektur – kein DCB nötig. Es ist deutlich weniger verbreitet als RoCEv2 und spielt bei Storage-Arrays kaum eine Rolle."},
+{id:"v20",lvl:"tief",q:"Wofür steht ALUA?",
+ o:["Automatic Load Und Access","Asymmetric Logical Unit Access – das Array meldet dem Host, welche Pfade optimal sind","Advanced LUN Allocation","Active Link Usage Algorithm"],a:1,
+ e:"Über ALUA erfährt der Host, welche Pfade bevorzugt zu nutzen sind. ANA ist dasselbe Prinzip für NVMe-oF."},
+{id:"v21",lvl:"tief",q:"Was ist ein IQN?",
+ o:["Ein Qualitätsmerkmal des Netzes","Die eindeutige Kennung eines iSCSI-Initiators oder -Targets","Eine Warteschlange im Controller","Ein Lizenzschlüssel"],a:1,
+ e:"Der iSCSI Qualified Name identifiziert Initiator und Target eindeutig, wie der WWPN bei FC. Bei NVMe-oF heißt das Gegenstück NQN."},
+{id:"v22",lvl:"tief",q:"Wofür wird ein WWPN im FC-SAN gebraucht?",
+ o:["Als weltweit eindeutige Kennung eines FC-Ports und Grundlage für Zoning","Als Passwort für den Fabric-Zugang","Zur Adressierung im IP-Netz","Zur Lizenzierung der Switch-Ports"],a:0,
+ e:"Jeder FC-Port hat einen eigenen World Wide Port Name. Zoning und LUN-Masking arbeiten mit diesen Kennungen."},
+{id:"v23",lvl:"tief",q:"Was bedeutet Boot-from-SAN?",
+ o:["Das Array startet von einem Server","Der Server bootet von einem Volume im Speichernetz statt von lokalen Platten","Das SAN wird beim Serverstart neu initialisiert","Eine Backup-Methode für Boot-Laufwerke"],a:1,
+ e:"Der Server braucht dafür kein lokales Laufwerk – praktisch beim Hardwaretausch. Bei NVMe-oF ist Boot-from-SAN allerdings nicht überall unterstützt, das gehört vorab geprüft."},
+
+{id:"h01",lvl:"basis",t:"hpe",q:"Welche Host-Protokolle unterstützt die HPE Alletra Storage MP B10000?",
+ o:["Nur Fibre Channel","FC, NVMe/FC, iSCSI und NVMe/TCP","FC, iSCSI und NVMe/RoCEv2","Ausschließlich NFS und SMB"],a:1,
+ e:"Die B10000 bietet 32/64G-FC-HBAs für SCSI-FC und NVMe/FC sowie 10/25-GbE-HBAs für iSCSI und NVMe/TCP. RoCE ist nicht dabei. Quelle: HPE QuickSpecs B10000."},
+{id:"h02",lvl:"tief",t:"hpe",q:"Können auf der B10000 iSCSI und NVMe/TCP denselben Ethernet-Port nutzen?",
+ o:["Ja, beliebig gemischt","Nein, beide brauchen getrennte, dedizierte Ports","Nur bei 25 GbE","Nur mit Zusatzlizenz"],a:1,
+ e:"iSCSI und NVMe/TCP können sich einen Port nicht teilen; sie belegen getrennte Portsets. Bei FC ist es anders: dort trägt ein Port zwei WWNs und bedient SCSI-FC und NVMe/FC parallel. Quelle: HPE Support-Doku Alletra Storage MP."},
+{id:"h03",lvl:"tief",t:"hpe",q:"Wie meldet die B10000 ihre Pfade an den Host?",
+ o:["Immer über ALUA","ALUA für FC und iSCSI, ANA für NVMe/FC und NVMe/TCP","Immer über ANA","Über LACP im Switch"],a:1,
+ e:"Die virtuellen Volumes werden per ALUA an FC- und iSCSI-Hosts gemeldet, per ANA an NVMe-Hosts. Alle Controller nehmen I/O an und verarbeiten sie selbst. Quelle: HPE Architecture Whitepaper B10000."},
+{id:"h04",lvl:"basis",t:"hpe",q:"Welche Host-Anbindungen bietet die HPE MSA Gen7 (2070/2072)?",
+ o:["16/32G FC, 10/25GbE iSCSI, 10GBase-T und 12G SAS","Nur FC und iSCSI","FC, iSCSI und NVMe/TCP","Nur SAS"],a:0,
+ e:"Das Modell legt das Protokoll fest, es wird nicht nachträglich umgestellt. Vier Hostports je Controller, acht je Array. Quelle: HPE MSA Gen7 QuickSpecs."},
+{id:"h05",lvl:"tief",t:"hpe",q:"Unterstützt die MSA Gen7 NVMe-over-Fabrics als Host-Protokoll?",
+ o:["Ja, über NVMe/TCP","Ja, über FC-NVMe","Nein – FC, iSCSI und SAS, kein NVMe-oF","Nur in der TAA-Variante"],a:2,
+ e:"NVMe-oF ist im Einstiegssegment der MSA nicht vorgesehen. Fordert eine Ausschreibung NVMe-oF, führt der Weg zur Alletra MP B10000. Quelle: HPE MSA Gen7 QuickSpecs."},
+{id:"h06",lvl:"basis",t:"hpe",q:"Wofür steht die HPE Alletra Storage MP X10000?",
+ o:["Ein Blockarray für Datenbanken","Ein Scale-out-Objektspeicher mit nativer S3- und S3a-API","Ein Backup-Appliance-Ersatz für StoreOnce","Ein Dateiserver für Windows"],a:1,
+ e:"Der X10000 ist All-Flash-Objektspeicher auf Alletra-MP-Hardware, containerbasiert und über GreenLake verwaltet. Typische Fälle: S3-Data-Lakes, Backup-Ziel, AI- und RAG-Workloads. Quelle: hpe.com."},
+{id:"h07",lvl:"basis",t:"hpe",q:"Worauf basiert HPE GreenLake for File Storage?",
+ o:["Auf NetApp ONTAP","Auf VAST-Data-Software auf HPE Alletra Storage MP Hardware","Auf Windows Server mit Storage Spaces","Auf Ceph"],a:1,
+ e:"HPE liefert die Alletra-MP-Hardware und das Management über GreenLake, die Dateidienste kommen von VAST Data. Architektur: Disaggregated Shared Everything. Quelle: HPE Service Description."},
+{id:"h08",lvl:"basis",t:"hpe",q:"Welche Protokolle liefert HPE GreenLake for File Storage?",
+ o:["NFS und SMB","Nur NFS","Nur SMB","iSCSI und NFS"],a:0,
+ e:"Multiprotokoll-Zugriff auf dieselben Daten über NFS und SMB. Zielbild sind unstrukturierte Daten, AI- und Analytics-Workloads. Quelle: HPE."},
+{id:"h09",lvl:"tief",t:"hpe",q:"Wie hieß die HPE Alletra Storage MP B10000 vor der Umbenennung?",
+ o:["HPE Primera","HPE Nimble Storage","HPE GreenLake for Block Storage built on HPE Alletra Storage MP","HPE 3PAR StoreServ"],a:2,
+ e:"Der Name wurde gestrafft, die Plattform blieb dieselbe. In älteren Unterlagen und Ausschreibungstexten taucht die alte Bezeichnung noch auf. Quelle: HPE QuickSpecs B10000."},
+{id:"h10",lvl:"basis",t:"hpe",q:"Worüber wird die HPE Alletra Storage MP verwaltet?",
+ o:["Über iLO","Über die Data Services Cloud Console auf der GreenLake-Plattform","Über OneView","Über den lokalen Array-Webserver"],a:1,
+ e:"Block, File und Object der Alletra-MP-Familie laufen in derselben Cloud-Konsole zusammen. Das ist auch ein Argument gegen Insellösungen im Angebot. Quelle: HPE."},
+{id:"h11",lvl:"basis",t:"hpe",q:"Was ist das Kernprinzip von HPE Zerto?",
+ o:["Snapshots im Stundenrhythmus","Continuous Data Protection: jeder Schreibvorgang wird fortlaufend in ein Journal repliziert","Bandsicherung mit Deduplizierung","Synchrone Spiegelung zweier Arrays"],a:1,
+ e:"Zerto repliziert jeden Write nahezu in Echtzeit und setzt alle paar Sekunden Checkpoints. Damit lässt sich auf einen Punkt kurz vor dem Vorfall zurückspulen. Quelle: HPE Zerto QuickSpecs."},
+{id:"h12",lvl:"tief",t:"hpe",q:"Was ist eine VRA bei HPE Zerto?",
+ o:["Eine physische Appliance im Rechenzentrum","Eine virtuelle Appliance je Hypervisor-Host, die Replikation und Journal verwaltet","Ein Lizenzmodell","Ein Speicher-Pool auf dem Array"],a:1,
+ e:"Die Virtual Replication Appliance läuft auf jedem beteiligten Host, kopiert jeden Write und führt das Journal je geschützter VM. Agenten in den VMs sind nicht nötig. Quelle: Zerto Architecture Guide."},
+{id:"h13",lvl:"tief",t:"hpe",q:"Welche Werte nennt HPE für Zerto als Zielgrößen?",
+ o:["RPO Stunden, RTO Tage","RPO Sekunden, RTO Minuten","RPO null, RTO null","RPO Minuten, RTO Stunden"],a:1,
+ e:"Sekunden Datenverlust, Minuten Wiederanlauf. Das Journal hält bis zu 30 Tage Historie – der maßgebliche Unterschied zu klassischem Backup. Quelle: HPE Zerto QuickSpecs."},
+{id:"h14",lvl:"tief",t:"hpe",q:"Was ist MSA-DP+?",
+ o:["Ein Lizenzpaket für erweiterte Datendienste","Ein verteiltes RAID-Verfahren der MSA neben den klassischen Leveln 0/1/5/6/10","Ein Protokoll für Remote-Replikation","Ein Verschlüsselungsverfahren"],a:1,
+ e:"MSA-DP+ verteilt Daten und Reservekapazität über alle Laufwerke einer Gruppe. Der Rebuild läuft dadurch schneller als bei klassischem RAID mit dedizierter Hot Spare. Quelle: HPE MSA Gen7 QuickSpecs."},
+{id:"h15",lvl:"tief",t:"hpe",q:"Ist eine MSA Gen7 mit nur einem Controller bestellbar?",
+ o:["Ja, als Einstiegsvariante","Nein – Gen7 gibt es nur mit zwei Controllern; Einzelbetrieb nur im Failover","Ja, aber ohne Snapshots","Nur bei den SAS-Modellen"],a:1,
+ e:"Single-Controller-Konfigurationen sind bei Gen7 abgekündigt. Ein Array läuft einzeln nur, solange der Partner ausgefallen ist. Quelle: HPE MSA Gen7 QuickSpecs."},
+{id:"h16",lvl:"tief",t:"hpe",q:"Was bedeutet DASE bei der Alletra Storage MP?",
+ o:["Dual Array Storage Engine","Disaggregated Shared Everything – Leistung und Kapazität skalieren unabhängig","Direct Attached Storage Extension","Dynamic Allocation of Storage Elements"],a:1,
+ e:"Controller-Knoten und Kapazitätsgehäuse werden getrennt erweitert. Genau das ist das Argument, wenn eine Ausschreibung getrennte Skalierung von IOPS und TB verlangt. Quelle: HPE."},
+{id:"h17",lvl:"tief",t:"hpe",q:"Womit beschleunigt der X10000 den S3-Zugriff zusätzlich?",
+ o:["Mit FC-Anbindung","Mit RDMA-Unterstützung für S3-kompatiblen Zugriff","Mit einem SSD-Lesecache vor den Knoten","Mit Jumbo Frames"],a:1,
+ e:"HPE gibt für RDMA-beschleunigten Zugriff bis zu doppelte Leistung an. Kapazitätsseitig arbeitet der X10000 mit Erasure Coding und Inline-Datenreduktion. Quelle: hpe.com."},
+{id:"h18",lvl:"tief",t:"hpe",q:"Was gilt an der B10000 für NVMe/FC mit Windows-Hosts?",
+ o:["Voll unterstützt seit Version 10.2","Nicht unterstützt – für Windows bleiben FC, iSCSI oder NVMe/TCP","Nur mit Broadcom-HBAs","Nur im Cluster"],a:1,
+ e:"NVMe over FC ist auf Windows-Hosts nicht freigegeben. Genau solche Lücken gehören vor der Angebotsabgabe gegen die Support-Matrix geprüft, nicht zugesagt. Quelle: HPE Windows Implementation Guide B10000."},
+{id:"h19",lvl:"basis",t:"hpe",q:"Ein Kunde fordert Blockstorage mit NVMe-oF und getrennter Skalierung von Leistung und Kapazität. Was passt aus dem HPE-Portfolio?",
+ o:["MSA Gen7","Alletra Storage MP B10000","Alletra Storage MP X10000","GreenLake for File Storage"],a:1,
+ e:"Die B10000 ist die einzige der vier, die NVMe-oF als Hostprotokoll und eine disaggregierte Architektur bietet. X10000 ist Object, GreenLake for File ist NAS, die MSA kann kein NVMe-oF."},
+{id:"h20",lvl:"basis",t:"hpe",q:"Welches HPE-Produkt passt als unveränderbares S3-Ziel für Backups im eigenen Rechenzentrum?",
+ o:["MSA Gen7","Alletra Storage MP X10000","GreenLake for File Storage","Alletra Storage MP B10000"],a:1,
+ e:"Der X10000 liefert S3 nativ und wird von HPE unter anderem als modernes Datenschutzziel positioniert, inklusive Immutability. Die anderen drei sprechen kein S3."},
+
+{id:"s01",lvl:"basis",t:"szen",q:"Vier VMware-Hosts an einer bestehenden 32G-FC-Fabric. Eine Oracle-Datenbank braucht niedrigere Latenz, für neue Switches ist kein Budget da. Was schlägst du vor?",
+ o:["Auf iSCSI umstellen und die Fabric abbauen","FC-NVMe auf der vorhandenen Fabric nutzen","Ein RoCEv2-Netz aufbauen","Mehr FC-Ports pro Host bestücken"],a:1,
+ e:"FC-NVMe läuft parallel zu SCSI-FC auf derselben Fabric – kein neues Netz, keine neuen Switches. Prüfen musst du vorher nur, ob Array, HBA-Firmware und ESXi-Version das laut Support-Matrix können. Mehr Ports helfen gegen Latenz nicht, sie erhöhen nur den Durchsatz."},
+{id:"s02",lvl:"basis",t:"szen",q:"Drei Hosts, kein Speichernetz vorhanden, keine Netzwerkkompetenz beim Kunden, kein Wachstum geplant. Was passt?",
+ o:["iSCSI mit neuem dediziertem VLAN","SAS direct attach","FC mit zwei Fabrics","NVMe/TCP"],a:1,
+ e:"Bei drei Hosts ohne Wachstumsperspektive spart SAS das komplette Speichernetz und damit genau die Komplexität, die der Kunde nicht betreuen kann. iSCSI wäre vertretbar, verlangt aber sauberes Netzdesign – das ist hier das Risiko."},
+{id:"s03",lvl:"basis",t:"szen",q:"Der Kunde will, dass Backups auch ein kompromittiertes Administratorkonto nicht löschen kann. Was gehört ins Konzept?",
+ o:["Snapshots auf dem Primärarray","S3-Ziel mit Object Lock und getrennten Zugangsdaten","RAID 6 statt RAID 5","Tägliche Vollsicherung statt inkrementell"],a:1,
+ e:"Object Lock sperrt Objekte für eine Frist unveränderlich, auch gegen Administratoren. Snapshots auf dem Primärsystem liegen im selben Vertrauensbereich und sind bei einem übernommenen Konto mit löschbar. RAID schützt gegen Plattenausfall, nicht gegen Löschung."},
+{id:"s04",lvl:"basis",t:"szen",q:"Der Kunde will NVMe-oF, lehnt aber ein dediziertes Speichernetz ab und hat kein DCB-Know-how. Was bietest du an?",
+ o:["NVMe/RoCEv2","FC-NVMe","NVMe/TCP","FCoE"],a:2,
+ e:"NVMe/TCP stellt keine Sonderanforderungen ans Netz und ist routbar. RoCEv2 würde genau das DCB-Know-how verlangen, das nicht da ist, FC-NVMe das abgelehnte eigene Netz."},
+{id:"s05",lvl:"tief",t:"szen",q:"400 TB unstrukturierte Daten für AI-Training, hoher paralleler Lesedurchsatz, Zugriff über NFS gefordert. Welche HPE-Lösung passt?",
+ o:["MSA Gen7 mit vorgeschaltetem NFS-Server","HPE GreenLake for File Storage","Alletra Storage MP B10000 über iSCSI","Alletra Storage MP X10000"],a:1,
+ e:"GreenLake for File ist genau für diesen Fall gebaut: VAST-Software auf Alletra MP, NFS und SMB, Skalierung bis in den Exabyte-Bereich. Der X10000 wäre Object statt File, die B10000 Block, die MSA-Konstruktion ein Flaschenhals."},
+{id:"s06",lvl:"basis",t:"szen",q:"Windows-Dateiserver sollen konsolidiert werden. NTFS-Rechte und AD-Anmeldung müssen erhalten bleiben. Was bietest du an?",
+ o:["NFS v4.1","SMB3-Freigaben","Eine iSCSI-LUN je Abteilung","S3-Buckets"],a:1,
+ e:"Nur SMB bildet AD-Anmeldung und die gewohnten Rechte ohne Bruch ab. Mit NFS müsstest du auf UID/GID-Mapping ausweichen, das erzeugt genau die Reibung, die der Kunde vermeiden will."},
+{id:"s07",lvl:"tief",t:"szen",q:"Die Leistungsbeschreibung verlangt, dass Leistung und Kapazität unabhängig voneinander erweiterbar sind. Worauf achtest du bei der Auswahl?",
+ o:["Auf möglichst viele Laufwerkseinschübe","Auf eine disaggregierte Architektur, bei der Controller und Kapazität getrennt wachsen","Auf die höchste Controller-Ausbaustufe","Auf besonders große Einzellaufwerke"],a:1,
+ e:"Ein klassisches Dual-Controller-Array koppelt beides: mehr Leistung gibt es nur über einen Controller-Tausch. Disaggregierte Systeme wie die Alletra MP trennen das – genau darauf zielt die Formulierung ab."},
+{id:"s08",lvl:"tief",t:"szen",q:"Zwei Rechenzentren, 12 km Abstand. Gefordert: einzelne VMs auf einen Punkt kurz vor einem Ransomware-Befall zurückholen, Datenverlust maximal Sekunden. Was passt?",
+ o:["Synchrone Array-Spiegelung","Stündliche Array-Snapshots","HPE Zerto mit journalbasierter CDP","Tägliches Backup auf Band"],a:2,
+ e:"Synchrone Spiegelung liefert zwar RPO null, repliziert die Verschlüsselung aber sofort mit und arbeitet auf Volume- statt VM-Ebene. Zertos Journal erlaubt das Zurückspulen auf einen Checkpoint sekundengenau vor dem Vorfall, je VM einzeln."},
+{id:"s09",lvl:"tief",t:"szen",q:"Der Kunde klagt über iSCSI-Leistung, ein 10-GbE-Pfad läuft am Limit. Der Netzwerkkollege schlägt LACP vor. Deine Reaktion?",
+ o:["Zustimmen, LACP verdoppelt die Bandbreite je Session","Auf MPIO mit mehreren Sessions über getrennte Pfade setzen","Jumbo Frames aktivieren, das löst es","Auf 100 GbE aufrüsten"],a:1,
+ e:"LACP verteilt nach Hash über Flows – eine einzelne iSCSI-Session bleibt dabei auf einem Link. Erst MPIO auf Storage-Ebene nutzt mehrere Pfade parallel und bringt gleichzeitig die Ausfallsicherheit."},
+{id:"s10",lvl:"basis",t:"szen",q:"Die Leistungsbeschreibung fordert „hochverfügbares Storage\", ohne das zu definieren. Was tust du?",
+ o:["Das größte Modell anbieten, um sicherzugehen","Eine Bieterfrage nach Verfügbarkeitswert, Messzeitraum und zulässigen Wartungsfenstern stellen","Eine eigene Annahme treffen und im Angebot dokumentieren","Zwei Arrays anbieten"],a:1,
+ e:"Unbestimmte Begriffe sind kalkulationsrelevant und damit ein klassischer Fall für eine Bieterfrage. Eine eigene Annahme trägt das Risiko allein, und Überdimensionierung kostet dich die Wertung."},
+{id:"s11",lvl:"tief",t:"szen",q:"Das Backup-Fenster reicht nicht mehr. Der Kunde fragt, ob FC-NVMe das löst. Was antwortest du?",
+ o:["Ja, NVMe halbiert die Laufzeit","Nein – hier zählt Durchsatz, nicht Latenz; zuerst den Engpass messen","Ja, wenn zusätzlich RoCE eingesetzt wird","Nein, nur mehr LUNs helfen"],a:1,
+ e:"Backups sind sequenziell und durchsatzgetrieben, NVMe-oF senkt vor allem die Latenz bei kleinen Zugriffen. Der Engpass sitzt meist an der Quelle, im Netz oder am Backup-Ziel – das gehört gemessen, bevor Hardware getauscht wird."},
+{id:"s12",lvl:"basis",t:"szen",q:"500 TB Archiv, seltener Zugriff, gesetzlich zehn Jahre unveränderlich aufzubewahren. Was schlägst du vor?",
+ o:["NAS mit Snapshots","Blockstorage mit RAID 6","Objektspeicher mit Object Lock","Ein zweites Primärarray zur Spiegelung"],a:2,
+ e:"Object Storage ist beim Preis pro TB und bei der Skalierung im Vorteil, Object Lock deckt die Unveränderbarkeit ab. Snapshots und RAID adressieren beide die Aufbewahrungspflicht nicht."},
+{id:"s13",lvl:"tief",t:"szen",q:"Der Kunde will auf S3 konsolidieren, seine Fachanwendung spricht aber nur SMB. Was ist die saubere Antwort?",
+ o:["Den Bucket einfach als Netzlaufwerk verbinden","Entweder beim Fileservice bleiben oder ein Gateway vorschalten, das SMB auf S3 abbildet","iSCSI dazwischenschalten","SMB über die S3-API tunneln"],a:1,
+ e:"S3 ist eine HTTP-API und lässt sich nicht als Laufwerk mounten. Entweder die Anwendung spricht S3, oder ein Gateway übersetzt – mit den Einschränkungen, die das bei Sperren und Latenz mit sich bringt."},
+{id:"s14",lvl:"tief",t:"szen",q:"Eine Ausschreibung nennt ausdrücklich FCoE als geforderte Anbindung. Wie gehst du vor?",
+ o:["FCoE beschaffen und anbieten","Stillschweigend iSCSI anbieten","Bieterfrage stellen, ob gleichwertige Protokolle zugelassen sind","Angebot abgeben und die Klärung dem Zuschlag überlassen"],a:2,
+ e:"FCoE ist faktisch abgekündigt; eine Festlegung darauf verengt den Wettbewerb. Die Bieterfrage lässt sich auf die Produktneutralität nach § 31 Abs. 6 VgV und die Gleichwertigkeitsklausel stützen. Stillschweigend abweichen führt zum Ausschluss."},
+{id:"s15",lvl:"tief",t:"szen",q:"VDI mit 800 Desktops, Beschwerden über Anmeldezeiten am Morgen. Worauf legst du die Auslegung aus?",
+ o:["Auf maximale Bandbreite in GB/s","Auf IOPS und niedrige Latenz bei kleinen Random-Zugriffen","Auf möglichst große Kapazität","Auf größere Jumbo Frames"],a:1,
+ e:"Boot- und Login-Stürme sind viele kleine, zufällige Zugriffe. Maßgeblich sind IOPS und Latenz, nicht der sequenzielle Durchsatz – All-Flash und ein latenzarmes Protokoll sind hier die Hebel."},
+{id:"s16",lvl:"tief",t:"szen",q:"Hyper-V-Cluster, reine Windows-Umgebung, gemeinsamer Speicher für die VMs. Welche Option scheidet aus?",
+ o:["FC als Cluster Shared Volume","iSCSI als Cluster Shared Volume","SMB3 auf einem Scale-Out File Server","NFS"],a:3,
+ e:"Hyper-V unterstützt Block über FC oder iSCSI sowie SMB3 als VM-Ablage. NFS ist dort kein unterstützter Weg – anders als bei VMware, wo genau umgekehrt SMB ausscheidet."},
+{id:"s17",lvl:"basis",t:"szen",q:"Der Kunde hat ausschließlich 1-GbE-Switches und möchte gemeinsamen Blockspeicher für zwei Hosts. Was empfiehlst du?",
+ o:["iSCSI über 1 GbE mit Jumbo Frames","SAS direct attach","NVMe/TCP über 1 GbE","Erst 25-GbE-Switches beschaffen, dann iSCSI"],a:1,
+ e:"1 GbE ist für Blockstorage keine sinnvolle Basis. Bei zwei Hosts ist SAS die günstigere und schnellere Lösung als eine Netzbeschaffung, die der Kunde für diesen Zweck allein nicht braucht."},
+{id:"s18",lvl:"tief",t:"szen",q:"Eine Ausschreibung fordert „NVMe Ende-zu-Ende\". Was klärst du als Erstes?",
+ o:["Ob NVMe nur die Laufwerke meint oder auch das Hostprotokoll (NVMe-oF)","Welche Kapazität gemeint ist","Ob SSDs oder HDDs gefordert sind","Welcher Hersteller gemeint ist"],a:0,
+ e:"Viele Arrays sind intern vollständig NVMe, sprechen nach vorn aber SCSI über FC oder iSCSI. Ob NVMe-oF verlangt ist, entscheidet über Array, HBAs und womöglich die ganze Fabric – das ist die teuerste Mehrdeutigkeit in solchen Texten."},
+{id:"s19",lvl:"tief",t:"szen",q:"Der Kunde möchte Boot-from-SAN über NVMe/TCP. Was ist dein erster Schritt?",
+ o:["Direkt konfigurieren, das ist Standard","Support-Matrix von Server, Netzwerkkarte, Betriebssystem und Array prüfen","Auf lokale Boot-Laufwerke ausweichen","Auf FC wechseln"],a:1,
+ e:"Boot-from-SAN ist bei NVMe-oF nicht durchgängig freigegeben und hängt an Firmware- und OS-Versionen. Diese Zusage ohne Matrixprüfung zu geben, ist der klassische Weg in ein Nachbesserungsprojekt."},
+{id:"s20",lvl:"tief",t:"szen",q:"Der Kunde hat HPE Aruba CX 8320 im Bestand und fordert 25 GbE iSCSI. Was gibst du zurück?",
+ o:["Passt, 25G-Transceiver einsetzen","Die CX 8320 betreibt die Ports nur mit 10G – echte 25 GbE brauchen die CX 8325","Passt, aber nur mit DAC-Kabeln","25 GbE ist bei iSCSI ohnehin sinnlos"],a:1,
+ e:"Der 25G-SFP28-Transceiver passt physisch in die CX 8320, die Portarchitektur lässt aber nur 10G zu. Wer das übersieht, verspricht eine Leistung, die die vorhandene Infrastruktur nicht liefert."},
+{id:"s21",lvl:"tief",t:"szen",q:"An einer Alletra MP B10000 sollen Altsysteme per iSCSI und neue Hosts per NVMe/TCP angebunden werden. Was planst du ein?",
+ o:["Beides über dieselben Ports, das Array trennt es intern","Getrennte Portsets für iSCSI und NVMe/TCP – der Portbedarf steigt entsprechend","Eine Zusatzlizenz für den Mischbetrieb","Einen Umstieg aller Hosts auf NVMe/TCP"],a:1,
+ e:"iSCSI und NVMe/TCP können sich an der B10000 keinen Ethernet-Port teilen. Bei FC ist es anders: dort trägt ein Port zwei WWNs und bedient SCSI und NVMe parallel. In der Konfiguration muss der höhere Portbedarf von Anfang an stehen."},
+{id:"s22",lvl:"tief",t:"szen",q:"Bestandskunde mit MSA Gen7 will erweitern, die neue Ausschreibung fordert NVMe-oF-Unterstützung. Wie bewertest du das?",
+ o:["Die MSA per Firmware-Update auf NVMe/TCP heben","Die MSA kann kein NVMe-oF – entweder Plattformwechsel zur B10000 oder Bieterfrage zur Notwendigkeit","NVMe-oF über einen vorgeschalteten Server nachrüsten","Die Anforderung ignorieren, sie ist nicht wertungsrelevant"],a:1,
+ e:"NVMe-oF ist im MSA-Einstiegssegment nicht vorgesehen und kommt auch nicht per Update. Bevor du den Plattformwechsel kalkulierst, lohnt die Frage, ob NVMe-oF tatsächlich gefordert oder nur als Zukunftsoption formuliert ist."}
+,
+{id:"k01",lvl:"basis",t:"kap",q:"Warum zeigt eine 10-TB-Platte im Betriebssystem nur rund 9,1 TB an?",
+ o:["Reservekapazität für die Firmware","Der Hersteller rechnet dezimal, das Betriebssystem binär","Das Dateisystem belegt 9 % für Verwaltungsdaten","Ein Teil ist als Hot Spare reserviert"],a:1,
+ h:"Rechne 10^12 gegen 2^40.",
+ e:"Der Hersteller meint 10 hoch 12 Byte, Windows rechnet in 2 hoch 40 und beschriftet das trotzdem mit TB. Die Lücke beträgt rund 9 % und hat mit Formatierung nichts zu tun."},
+{id:"k02",lvl:"basis",t:"kap",q:"Was ist der Unterschied zwischen TB und TiB?",
+ o:["Keiner, nur unterschiedliche Schreibweise","TB rechnet dezimal (10^12), TiB binär (2^40) – rund 10 % Unterschied","TiB gilt nur für SSDs","TB ist brutto, TiB ist netto"],a:1,
+ e:"TiB ist die binäre Einheit und rund 10 % größer als TB. Wer die beiden in einem Angebot vermischt, verspricht entweder zu viel oder rechnet sich zu teuer."},
+{id:"k03",lvl:"tief",t:"kap",q:"Eine Ausschreibung fordert „20 TB nutzbare Kapazität\". Was klärst du?",
+ o:["Nichts, der Wert ist eindeutig","Dezimal oder binär, vor oder nach RAID und Spare, und ob Datenreduktion angerechnet werden darf","Nur den geforderten RAID-Level","Nur die Anzahl der Laufwerke"],a:1,
+ e:"Zwischen brutto dezimal und netto binär nach RAID 6 plus Spare liegen schnell 40 % Unterschied. Wenn der Auftraggeber zusätzlich Datenreduktion einrechnen will, verschiebt sich alles noch einmal – und zwar zu Lasten dessen, der es falsch angenommen hat."},
+{id:"k04",lvl:"basis",t:"kap",q:"Zehn gleich große Laufwerke im RAID 6. Wie viel davon steht für Daten zur Verfügung?",
+ o:["Neun Laufwerke","Acht Laufwerke","Fünf Laufwerke","Zehn Laufwerke"],a:1,
+ e:"RAID 6 legt zwei Paritätsanteile an und verkraftet damit zwei gleichzeitige Ausfälle. Bei zehn Laufwerken bleiben acht als Nutzkapazität – vor der Umrechnung in TiB und vor einer eventuellen Spare."},
+{id:"k05",lvl:"basis",t:"kap",q:"Wogegen schützt RAID?",
+ o:["Gegen den Ausfall von Laufwerken","Gegen versehentliches Löschen","Gegen Ransomware","Gegen alle drei genannten Fälle"],a:0,
+ e:"RAID hält den Betrieb beim Plattenausfall aufrecht, mehr nicht. Gelöschte oder verschlüsselte Daten werden sauber über alle Laufwerke hinweg gelöscht beziehungsweise verschlüsselt. RAID ersetzt kein Backup."},
+{id:"k06",lvl:"tief",t:"kap",q:"Warum gilt RAID 5 bei sehr großen Laufwerken als riskant?",
+ o:["RAID 5 ist langsamer als RAID 6","Der Rebuild dauert lange und belastet alle Platten – in dieser Zeit ist ein zweiter Ausfall fatal","RAID 5 unterstützt keine SSDs","RAID 5 braucht mehr Kapazität"],a:1,
+ e:"Bei mehreren TB je Laufwerk zieht sich ein Rebuild über viele Stunden bis Tage und liest dabei jedes andere Laufwerk vollständig. Genau dann fällt das nächste aus – RAID 5 verkraftet das nicht."},
+{id:"k07",lvl:"tief",t:"kap",q:"Was bringt eine verteilte Reservekapazität gegenüber einer dedizierten Hot Spare?",
+ o:["Mehr nutzbare Kapazität","Der Rebuild schreibt auf alle Laufwerke statt auf eines und ist dadurch deutlich schneller","Geringeren Stromverbrauch","Sie ersetzt die Parität"],a:1,
+ e:"Bei klassischer Hot Spare ist das eine Ersatzlaufwerk der Flaschenhals des Rebuilds. Verteilte Verfahren wie MSA-DP+ oder Erasure Coding schreiben parallel über den ganzen Verbund und verkürzen das Risikofenster erheblich."},
+{id:"k08",lvl:"tief",t:"kap",q:"Was macht Erasure Coding?",
+ o:["Es verschlüsselt Daten vor dem Schreiben","Es zerlegt Daten in Daten- und Paritätsfragmente über viele Laufwerke oder Knoten","Es komprimiert Daten vor dem Schreiben","Es spiegelt Daten auf einen zweiten Standort"],a:1,
+ e:"Es ist im Prinzip RAID über viele Einheiten hinweg: Die Anzahl der Paritätsfragmente bestimmt, wie viele Ausfälle verkraftet werden. Gegenüber echter Spiegelung ist das bei großen Systemen deutlich kapazitätseffizienter."},
+{id:"k09",lvl:"tief",t:"kap",q:"Wo liegt der Kompromiss bei RAID 10 gegenüber RAID 6?",
+ o:["RAID 10 ist langsamer, aber sicherer","RAID 10 rebuildet schneller und schreibt besser, bietet aber nur 50 % Nutzkapazität","RAID 10 verkraftet keine zwei Ausfälle","RAID 10 funktioniert nur mit SSDs"],a:1,
+ e:"RAID 10 spiegelt und streift, es gibt keine Paritätsberechnung. Das kostet die Hälfte der Kapazität, spart aber die Write Penalty und macht den Rebuild zu einem reinen Kopiervorgang."},
+{id:"k10",lvl:"tief",t:"kap",q:"Warum ist eine zugesagte Datenreduktionsrate im Angebot riskant?",
+ o:["Weil sie sich nicht messen lässt","Weil die Rate von den Daten abhängt – bereits komprimierte oder verschlüsselte Daten reduzieren sich kaum","Weil sie nur bei HDDs gilt","Weil sie lizenzpflichtig ist"],a:1,
+ e:"Bei vielen ähnlichen VMs sind hohe Raten realistisch, bei Video, Bildarchiven oder verschlüsselten Daten liegt sie nahe eins. Zusagen gehören deshalb an den Datentyp gekoppelt oder gar nicht ins Angebot."},
+{id:"k11",lvl:"tief",t:"kap",q:"Worin unterscheiden sich Deduplizierung und Komprimierung?",
+ o:["Deduplizierung entfernt mehrfach vorhandene Blöcke, Komprimierung verkleinert den einzelnen Block","Beides ist dasselbe","Deduplizierung arbeitet nur im Backup, Komprimierung nur im Primärspeicher","Komprimierung ist verlustbehaftet"],a:0,
+ e:"Beide greifen an verschiedenen Stellen und wirken zusammen. Deduplizierung lohnt bei vielen ähnlichen Objekten, Komprimierung auch bei Einzeldaten – sofern diese nicht schon komprimiert sind."},
+{id:"k12",lvl:"basis",t:"kap",q:"Was ist eine Hot Spare?",
+ o:["Ein Ersatzlaufwerk im Lager","Ein mitlaufendes Reservelaufwerk, das bei einem Ausfall automatisch einspringt","Ein zweiter Controller","Ein Cache-Laufwerk"],a:1,
+ e:"Die Hot Spare steckt im System, läuft mit und übernimmt ohne manuellen Eingriff. Sie kostet Kapazität, verkürzt aber die Zeit, in der der Verbund ungeschützt läuft."},
+{id:"k13",lvl:"tief",t:"kap",q:"Was bedeutet Thin Provisioning?",
+ o:["Das Volume wird beim Anlegen vollständig belegt","Dem Host wird mehr Kapazität gemeldet, als physisch belegt ist – belegt wird erst beim Schreiben","Daten werden automatisch komprimiert","Kleine Volumes werden zusammengefasst"],a:1,
+ e:"Das spart Kapazität und erlaubt Überbuchung des Pools. Die Kehrseite: Der Füllstand muss überwacht werden, sonst laufen mehrere Volumes gleichzeitig gegen eine volle physische Kapazität."},
+{id:"k14",lvl:"tief",t:"kap",q:"Was ist die Write Penalty bei RAID 5 und 6?",
+ o:["Schreibvorgänge werden verschlüsselt und dadurch langsamer","Ein kleiner Schreibzugriff erfordert zusätzliche Lese- und Schreiboperationen für die Parität","Es dürfen nur sequenzielle Schreibvorgänge erfolgen","Schreibzugriffe werden auf einen Controller begrenzt"],a:1,
+ e:"Für einen geänderten Block müssen alte Daten und Parität gelesen, neu berechnet und zurückgeschrieben werden. Bei RAID 6 mit zwei Paritäten ist der Aufwand höher, bei RAID 10 entfällt er weitgehend."},
+{id:"k15",lvl:"tief",t:"kap",q:"Eine Anforderung lautet „RAID 5 oder gleichwertig\". Worauf achtest du?",
+ o:["Nur klassisches RAID 5 anbieten","Prüfen, ob verteilte Verfahren wie MSA-DP+ oder Erasure Coding als gleichwertig akzeptiert werden","RAID 0 anbieten, das ist schneller","Die Anforderung ignorieren"],a:1,
+ e:"Moderne Arrays bilden oft gar keinen klassischen RAID-Level mehr ab, sondern verteilte Verfahren mit gleicher oder besserer Ausfallsicherheit. Ohne Klärung riskierst du entweder den Ausschluss oder eine unnötig schlechte Lösung."},
+
+{id:"b31",lvl:"basis",t:"bak",q:"Wofür steht die 3-2-1-Regel?",
+ o:["Drei Sicherungen pro Woche, zwei Standorte, ein Verantwortlicher","Drei Kopien der Daten, auf zwei verschiedenen Medientypen, eine davon außer Haus","Drei Generationen, zwei Jahre, ein Archiv","Drei Kopien, zwei Prüfungen, ein Restore-Test"],a:1,
+ e:"Die Regel adressiert drei verschiedene Risiken: Einzelfehler, Medienfehler und Standortverlust. Sie ist der Ausgangspunkt jedes Backup-Konzepts, nicht das Ziel."},
+{id:"b32",lvl:"tief",t:"bak",q:"Was ergänzt die Erweiterung 3-2-1-1-0?",
+ o:["Eine weitere Vollsicherung und null Inkremente","Eine Kopie offline oder unveränderbar, und null Fehler bei der verifizierten Wiederherstellung","Ein weiterer Standort und null Cloud","Eine weitere Kopie und null Aufbewahrungsfrist"],a:1,
+ e:"Die zusätzliche 1 ist die Antwort auf Ransomware, die Null die Antwort auf ungetestete Backups. Beides sind genau die Punkte, an denen Konzepte in der Praxis scheitern."},
+{id:"b33",lvl:"basis",t:"bak",q:"Worin unterscheiden sich Backup und Archiv?",
+ o:["Backup dient der Wiederherstellung nach Verlust, Archiv der langfristigen Aufbewahrung","Nur in der Aufbewahrungsdauer","Backup liegt auf Platte, Archiv auf Band","Es gibt keinen Unterschied"],a:0,
+ e:"Ein Backup ist eine Kopie aktiver Daten mit kurzer Aufbewahrung. Ein Archiv ist die verlagerte Ablage selten benötigter Daten mit langer Frist. Wer das Backup als Archiv missbraucht, bläht die Sicherungskette auf."},
+{id:"b34",lvl:"tief",t:"bak",q:"Was ist ein synthetisches Vollbackup?",
+ o:["Eine komprimierte Vollsicherung","Ein Vollstand, der im Repository aus dem letzten Voll plus den Inkrementen erzeugt wird","Eine Vollsicherung ohne Datenbanken","Eine Sicherung, die nur Metadaten enthält"],a:1,
+ e:"Die Quelle wird dafür nicht erneut vollständig gelesen – das entlastet Produktionssystem und Netz. Der Aufwand verlagert sich auf das Backup-Ziel, das dafür entsprechend leistungsfähig sein muss."},
+{id:"b35",lvl:"tief",t:"bak",q:"Wofür steht GFS bei der Aufbewahrung?",
+ o:["Global File System","Grandfather-Father-Son – gestaffelte Aufbewahrung nach Tag, Woche und Monat oder Jahr","Guaranteed Full Sync","Granular File Storage"],a:1,
+ e:"Tägliche Sicherungen werden kurz gehalten, wöchentliche und monatliche länger. Das deckt kurzfristige Fehler und langfristige Nachweispflichten ab, ohne jede Tagessicherung jahrelang vorzuhalten."},
+{id:"b36",lvl:"tief",t:"bak",q:"Was kennzeichnet ein Hardened Repository?",
+ o:["Ein Repository auf besonders robuster Hardware","Ein Linux-Repository mit Unveränderbarkeitsflag, auf das der Backup-Server keinen Root-Zugriff hat","Ein verschlüsseltes Repository","Ein Repository ohne Netzwerkanbindung"],a:1,
+ e:"Der entscheidende Punkt ist die fehlende Berechtigung: Selbst ein übernommener Backup-Server kann die Sicherungen bis zum Fristende nicht löschen. Das ist das On-Premises-Gegenstück zu Object Lock."},
+{id:"b37",lvl:"basis",t:"bak",q:"Was bedeutet Air Gap im Backup-Kontext?",
+ o:["Eine Kopie, die logisch oder physisch vom Produktionsnetz getrennt ist","Ein Abstand zwischen Racks zur Kühlung","Eine unverschlüsselte Sicherung","Eine Sicherung ohne Deduplizierung"],a:0,
+ e:"Klassisch war das Band im Schrank. Heute wird es oft logisch umgesetzt, über getrennte Konten, eigene Netzsegmente und Unveränderbarkeit – die Wirkung soll dieselbe sein."},
+{id:"b38",lvl:"tief",t:"bak",q:"Warum reicht ein erfolgreich gemeldeter Backup-Job nicht als Nachweis?",
+ o:["Weil die Meldung oft verzögert kommt","Weil erst ein Wiederherstellungstest die Nutzbarkeit belegt","Weil Jobs nie vollständig durchlaufen","Weil die Meldung nur die Kapazität prüft"],a:1,
+ e:"Der Job bestätigt, dass Daten geschrieben wurden – nicht, dass sich daraus ein lauffähiges System zurückholen lässt. Genau dafür steht die Null in 3-2-1-1-0."},
+{id:"b39",lvl:"basis",t:"bak",q:"Was unterscheidet aktiv/aktiv von aktiv/passiv?",
+ o:["Aktiv/aktiv ist immer sicherer","Bei aktiv/aktiv arbeiten beide Knoten gleichzeitig, bei aktiv/passiv wartet einer im Standby","Aktiv/passiv braucht keine Replikation","Aktiv/aktiv gibt es nur bei Storage"],a:1,
+ e:"Aktiv/aktiv nutzt beide Systeme produktiv und schwenkt schneller, stellt aber höhere Anforderungen an Latenz und Konsistenz. Aktiv/passiv ist einfacher, lässt aber Hardware ungenutzt stehen."},
+{id:"b40",lvl:"tief",t:"bak",q:"Wozu dient ein Witness beziehungsweise Quorum?",
+ o:["Zur Lastverteilung zwischen den Knoten","Als dritte Instanz, die bei Verbindungsverlust entscheidet, welche Seite weiterläuft","Zur Überwachung der Backups","Als zusätzlicher Datenspeicher"],a:1,
+ e:"Ohne dritte Stimme können zwei Standorte nach einem Leitungsausfall nicht unterscheiden, ob die Gegenseite tot oder nur unerreichbar ist. Der Witness gehört deshalb an einen dritten, unabhängigen Ort."},
+{id:"b41",lvl:"tief",t:"bak",q:"Was ist Split-Brain?",
+ o:["Ein Fehler in der Firmware der Controller","Beide Seiten halten sich für aktiv und schreiben unabhängig voneinander, die Daten laufen auseinander","Ein Cluster mit ungerader Knotenzahl","Der Ausfall beider Knoten gleichzeitig"],a:1,
+ e:"Das Ergebnis sind zwei divergierende Datenstände, die sich nachträglich kaum zusammenführen lassen. Quorum-Mechanismen und Witness existieren ausschließlich, um genau das zu verhindern."},
+{id:"b42",lvl:"basis",t:"bak",q:"Was bedeutet N+1?",
+ o:["Eine Komponente mehr, als für den Betrieb nötig ist","Ein Backup mehr als vorgeschrieben","Ein zusätzliches Jahr Garantie","Ein Reserveknoten im zweiten Rechenzentrum"],a:0,
+ e:"Bei Netzteilen, Lüftern oder Knoten heißt das: Der Ausfall einer Einheit ist verkraftbar. Wichtig ist der Bezug – N+1 bei Netzteilen nützt wenig, wenn beide am selben Stromkreis hängen."},
+{id:"b43",lvl:"tief",t:"bak",q:"Wie viel Ausfallzeit pro Jahr erlaubt eine Verfügbarkeit von 99,9 %?",
+ o:["Rund 53 Minuten","Rund 8,8 Stunden","Rund 4,4 Stunden","Rund 3,7 Tage"],a:1,
+ e:"0,1 % von 8760 Stunden sind rund 8,8 Stunden im Jahr, also etwa 44 Minuten im Monat. Ein Wert, den viele Kunden für deutlich strenger halten, als er ist."},
+{id:"b44",lvl:"tief",t:"bak",q:"Wie viel Ausfallzeit pro Jahr erlaubt eine Verfügbarkeit von 99,99 %?",
+ o:["Rund 8,8 Stunden","Rund 53 Minuten","Rund 5 Stunden","Rund 9 Minuten"],a:1,
+ e:"Knapp eine Stunde im Jahr – das schließt geplante Wartung faktisch aus, sofern sie nicht ausdrücklich herausgerechnet wird. Genau dieser Punkt gehört bei jeder Verfügbarkeitszusage geklärt."},
+{id:"b45",lvl:"tief",t:"bak",q:"Warum ersetzt eine Hochverfügbarkeitslösung kein Backup?",
+ o:["Weil sie zu teuer ist","Weil sie fehlerhafte oder verschlüsselte Daten sofort mitrepliziert","Weil sie nur Hardware schützt, keine Software","Weil sie keine Snapshots kann"],a:1,
+ e:"HA schützt gegen den Ausfall einer Komponente, nicht gegen falsche Inhalte. Ein gelöschter Datensatz oder eine Verschlüsselung ist auf beiden Seiten in Sekunden vorhanden."},
+{id:"b46",lvl:"basis",t:"bak",q:"Was ist ein Single Point of Failure?",
+ o:["Ein Bauteil mit besonders hoher Ausfallrate","Eine Komponente, deren Ausfall den gesamten Dienst stoppt","Der erste Fehler in einer Fehlerkette","Ein Server ohne Wartungsvertrag"],a:1,
+ e:"Redundanz an einer Stelle nützt nichts, wenn eine andere einfach vorhanden ist. Am häufigsten übersehen werden Stromkreis, Uplink und die Managementebene."},
+{id:"b47",lvl:"tief",t:"bak",q:"Was bedeutet Unveränderbarkeit (Immutability) konkret?",
+ o:["Die Daten sind verschlüsselt","Die Daten können bis zum Fristende von niemandem geändert oder gelöscht werden, auch nicht von Administratoren","Die Daten liegen schreibgeschützt auf Band","Die Daten werden versioniert"],a:1,
+ e:"Der entscheidende Teil ist „auch nicht von Administratoren\". Ein Schreibschutz, den ein Konto aufheben kann, erfüllt die Anforderung nicht – und genau das ist das Angriffsziel bei Ransomware."},
+
+{id:"c01",lvl:"basis",t:"srv",q:"Wofür stehen DL, ML und RL bei HPE ProLiant?",
+ o:["Drei Leistungsklassen derselben Bauform","DL Rack, ML Tower, RL Arm-basiert","DL Datenbank, ML Machine Learning, RL Rechenzentrum","Drei Generationen"],a:1,
+ e:"Die Buchstaben beschreiben die Bauform beziehungsweise Architektur, die Ziffern danach Sockelzahl und Positionierung. DL380 ist der 2-Sockel-Standard im Rack, ML350 das Tower-Pendant."},
+{id:"c02",lvl:"basis",t:"srv",q:"Wofür ist iLO da?",
+ o:["Zur Verwaltung mehrerer Server über eine Konsole","Zur Fernwartung eines einzelnen Servers unabhängig vom Betriebssystem","Zur Überwachung des Speichernetzes","Zur Lizenzverwaltung"],a:1,
+ e:"iLO sitzt auf dem Board und arbeitet out-of-band – auch wenn das Betriebssystem steht. Konsole, Einschalten, Firmware und Hardwarestatus laufen darüber."},
+{id:"c03",lvl:"tief",t:"srv",q:"Wie grenzen sich iLO, OneView und Compute Ops Management ab?",
+ o:["Drei Namen für dasselbe Werkzeug","iLO je Server, OneView als lokale Verwaltung mehrerer Systeme, Compute Ops Management als Cloud-Konsole","iLO für Storage, OneView für Server, COM für Netzwerk","OneView ist der Nachfolger von iLO"],a:1,
+ e:"Die Ebenen bauen aufeinander auf. In Konfigurationen ist vor allem die Lizenzierung relevant: iLO Advanced und OneView bringen einen gebundenen Supportzeitraum mit, der zur Vertragslaufzeit passen muss."},
+{id:"c04",lvl:"tief",t:"srv",q:"Was ist der Silicon Root of Trust?",
+ o:["Ein Verschlüsselungsmodul für Festplatten","Eine Bindung der Firmware an einen HPE-eigenen ASIC – passt der Fingerabdruck nicht, startet der Server nicht","Ein Zertifikatsspeicher im Betriebssystem","Ein Sicherheitsmodul im Netzteil"],a:1,
+ e:"Der Server prüft beim Start die gesamte Firmware gegen einen unveränderlichen Anker in der Hardware. In Ausschreibungen taucht das häufig als Anforderung an manipulationssichere Firmware auf."},
+{id:"c05",lvl:"tief",t:"srv",q:"Warum sollten DIMMs gleichmäßig über alle Speicherkanäle verteilt werden?",
+ o:["Sonst startet der Server nicht","Sonst bleibt Speicherbandbreite ungenutzt und die Leistung fällt messbar ab","Sonst erlischt die Garantie","Sonst wird die Kapazität nicht erkannt"],a:1,
+ e:"Der Speichercontroller greift auf alle Kanäle parallel zu. Eine unsymmetrische Bestückung läuft, lässt aber Bandbreite liegen – ein häufiger Fehler bei nachträglichen Erweiterungen."},
+{id:"c06",lvl:"tief",t:"srv",q:"Wie viele Speicherkanäle je Sockel bietet AMD EPYC der Genoa-Generation?",
+ o:["Acht","Zwölf","Sechs","Sechzehn"],a:1,
+ e:"Zwölf Kanäle je Sockel – deutlich mehr als bei den zeitgleichen Intel-Modellen. Für eine volle Bestückung braucht ein Zweisockel-System entsprechend 24 DIMMs."},
+{id:"c07",lvl:"tief",t:"srv",q:"Was passiert bei zwei DIMMs pro Kanal?",
+ o:["Die Kapazität verdoppelt sich ohne Nachteil","Die Taktrate kann sinken – mehr Kapazität wird mit Bandbreite erkauft","Der Server fällt auf einen Kanal zurück","Es funktioniert nur mit registriertem Speicher"],a:1,
+ e:"Ob und wie stark der Takt fällt, hängt an Plattform und Speichertyp. Wenn eine Ausschreibung Kapazität und Bandbreite gleichzeitig fordert, entscheidet genau das über die Bestückungsvariante."},
+{id:"c08",lvl:"tief",t:"srv",q:"Womit prüfst du die Leistungsaufnahme einer geplanten Serverkonfiguration?",
+ o:["Über die Summe der Netzteil-Wattzahlen","Mit dem HPE Power Advisor beziehungsweise im Konfigurator","Über die Angaben im Datenblatt des Gehäuses","Über eine Messung nach der Lieferung"],a:1,
+ e:"Die Netzteilgröße sagt nichts über die reale Aufnahme. Ohne diese Prüfung landen unterdimensionierte oder unnötig große Netzteile in der Konfiguration – und im schlechtesten Fall fehlt die Redundanz."},
+{id:"c09",lvl:"tief",t:"srv",q:"Zwei redundante Netzteile sind verbaut. Was ist zusätzlich zu beachten?",
+ o:["Nichts, damit ist die Redundanz erfüllt","Beide müssen an getrennten Stromkreisen hängen, sonst bleibt der Stromkreis der Single Point of Failure","Beide müssen unterschiedliche Wattzahlen haben","Eines muss abgeschaltet bleiben"],a:1,
+ e:"Redundante Netzteile am selben Kreis schützen nur gegen den Defekt eines Netzteils, nicht gegen den Ausfall der Zuleitung. Bei Ausschreibungen mit Verfügbarkeitszusagen gehört das ausdrücklich abgefragt."},
+{id:"c10",lvl:"basis",t:"srv",q:"Wofür stehen SFP+ und SFP28?",
+ o:["SFP+ für Kupfer, SFP28 für Glas","SFP+ für 10 Gbit/s, SFP28 für 25 Gbit/s","SFP+ für 1 Gbit/s, SFP28 für 10 Gbit/s","Zwei Namen für denselben Formfaktor"],a:1,
+ e:"Beide haben dieselbe Bauform, der Unterschied liegt in der unterstützten Rate. Ein SFP28 passt deshalb physisch auch in einen SFP+-Steckplatz – ob der Port 25G kann, entscheidet die Switch-Architektur."},
+{id:"c11",lvl:"basis",t:"srv",q:"Was ist QSFP28?",
+ o:["Ein Formfaktor für 100 Gbit/s, intern vier Lanes zu 25 Gbit/s","Ein Formfaktor für 40 Gbit/s","Ein Kupferstecker für 25 Gbit/s","Ein Steckplatz für Speichermodule"],a:0,
+ e:"Das Q steht für Quad: vier parallele Kanäle in einem Stecker. Deshalb lässt sich ein solcher Port auch auf vier einzelne 25G-Verbindungen aufteilen."},
+{id:"c12",lvl:"tief",t:"srv",q:"Was macht ein Breakout-Kabel?",
+ o:["Es verlängert eine Glasfaserstrecke","Es teilt einen 100G-QSFP28-Port in vier 25G-SFP28-Verbindungen auf","Es verbindet zwei Switches redundant","Es wandelt Glas auf Kupfer"],a:1,
+ e:"Das ist der übliche Weg, Serverports mit 25G an wenigen 100G-Switchports anzubinden. Voraussetzung ist, dass der Switch den Port für Breakout freigibt – das steht nicht bei jedem Modell im Datenblatt."},
+{id:"c13",lvl:"basis",t:"srv",q:"In welchem Fall brauchst du keine separaten Transceiver?",
+ o:["Bei DAC- und AOC-Kabeln sowie bei RJ45-BASE-T-Ports","Nur bei Kupferverkabelung im Rack","Nur bei Verbindungen unter 3 Metern","Transceiver werden immer benötigt"],a:0,
+ e:"Bei DAC und AOC sind die Enden fest verbaut, BASE-T-Ports brauchen ohnehin keine. Bei allen anderen Glasfaserports gehören Transceiver in die Konfiguration – ihr Fehlen ist einer der häufigsten Fehler in Angeboten."},
+{id:"c14",lvl:"tief",t:"srv",q:"Worin unterscheiden sich DAC und AOC?",
+ o:["DAC ist Kupfer für kurze Strecken, AOC ist Glasfaser mit fest verbauten Optiken für größere Längen","DAC ist die schnellere Variante","AOC funktioniert nur zwischen Switches","DAC braucht zusätzliche Transceiver"],a:0,
+ e:"DAC ist günstig und stromsparend, reicht aber nur wenige Meter – typisch im Rack. AOC überbrückt deutlich mehr, ist aber auf eine feste Länge konfektioniert."},
+{id:"c15",lvl:"tief",t:"srv",q:"Wann setzt du Singlemode (OS2) statt Multimode (OM4) ein?",
+ o:["Immer, Singlemode ist grundsätzlich besser","Bei langen Strecken bis in den Kilometerbereich – OM4 deckt kurze Distanzen im Rechenzentrum ab","Nur bei Kupferersatz","Nur bei 10 Gbit/s"],a:1,
+ e:"OM4 mit SR-Optiken reicht innerhalb eines Rechenzentrums, OS2 mit LR-Optiken für Gebäude- oder Standortverbindungen. Faser und Optik müssen zusammenpassen – eine LR-Optik auf OM4 funktioniert nicht zuverlässig."},
+{id:"c16",lvl:"tief",t:"srv",q:"Wofür wird eine MPO- beziehungsweise MTP-Verkabelung gebraucht?",
+ o:["Für besonders lange Einzelstrecken","Für parallele Optiken wie 100G-SR4, die mehrere Faserpaare gleichzeitig nutzen","Für Kupferverbindungen im Rack","Für die Managementverkabelung"],a:1,
+ e:"Ein LC-Duplex-Patchkabel führt ein Faserpaar. Parallele Optiken brauchen vier davon und damit einen Mehrfaserstecker – wer das in der Planung übersieht, hat die falsche Verkabelung im Rack."},
+{id:"c17",lvl:"tief",t:"srv",q:"Eine Server-BOM enthält Netzwerkadapter mit SFP28-Ports. Was prüfst du?",
+ o:["Nur die Anzahl der Ports","Ob passende Transceiver oder DAC-Kabel mit bepreist sind","Nur die Treiberunterstützung","Nur die PCIe-Generation"],a:1,
+ e:"Adapter werden ohne Optik geliefert. Fehlende Transceiver sind einer der häufigsten stillen Fehler in Konfigurationen – anders als bei RJ45-BASE-T-Adaptern, die keine brauchen."}
+];
+
+const KEY="sp-trainer-v1";
+let stats={}, recent=[], cfg={lvl:"basis", n:10, topic:"alle"};
+try{ const raw=localStorage.getItem(KEY); if(raw){ const p=JSON.parse(raw); stats=p.stats||{}; recent=p.recent||[]; if(p.cfg) cfg=Object.assign(cfg,p.cfg);} }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({stats,recent,cfg})); }catch(e){} }
+
+const $=id=>document.getElementById(id);
+let round=[], idx=0, answered=false, missed=[], results=[];
+
+function topicOf(q){ return q.t || "proto"; }
+function pool(){
+  return POOL.filter(q =>
+    (cfg.lvl==="alle" || q.lvl==="basis") &&
+    (cfg.topic==="alle" || topicOf(q)===cfg.topic));
+}
+function weight(q){
+  const s=stats[q.id]||{r:0,w:0};
+  let v=1 + 3*s.w - 0.6*s.r;
+  if(!s.r && !s.w) v+=2;
+  const pos=recent.indexOf(q.id);
+  if(pos>-1) v*= 0.25 + 0.05*pos;
+  return Math.max(0.3,v);
+}
+function draw(n){
+  const src=pool().slice(), out=[];
+  n=Math.min(n,src.length);
+  while(out.length<n){
+    const tot=src.reduce((a,q)=>a+weight(q),0);
+    let r=Math.random()*tot, i=0;
+    for(;i<src.length;i++){ r-=weight(src[i]); if(r<=0) break; }
+    out.push(src.splice(Math.min(i,src.length-1),1)[0]);
+  }
+  return out;
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+function segInit(el,key,cast){
+  el.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    [...el.children].forEach(c=>c.setAttribute("aria-pressed", String(c===b)));
+    cfg[key]=cast(b.dataset.v); save(); info();
+  });
+  [...el.children].forEach(c=>c.setAttribute("aria-pressed", String(c.dataset.v===String(cfg[key]))));
+}
+segInit($("segTopic"),"topic",v=>v);
+segInit($("segLevel"),"lvl",v=>v);
+segInit($("segCount"),"n",v=>parseInt(v,10));
+
+function info(){
+  const p=pool();
+  const seen=p.filter(q=>stats[q.id]&&(stats[q.id].r||stats[q.id].w)).length;
+  const weak=p.filter(q=>stats[q.id]&&stats[q.id].w>stats[q.id].r).length;
+  $("poolInfo").textContent = p.length+" Fragen im Pool · "+seen+" schon beantwortet"+(weak?" · "+weak+" noch wackelig":"");
+  $("reset").classList.toggle("hide", seen===0);
+}
+info();
+
+function show(s){ ["start","quiz","end"].forEach(x=>$(x).classList.toggle("hide", x!==s)); window.scrollTo(0,0); }
+
+function start(list){
+  round=list.map(q=>({q, opts:shuffle(q.o.map((t,i)=>({t,i})))}));
+  idx=0; missed=[]; results=new Array(round.length).fill(null);
+  show("quiz"); render();
+}
+$("go").onclick=()=>start(draw(cfg.n));
+$("again").onclick=()=>start(draw(cfg.n));
+$("home").onclick=()=>{ info(); show("start"); };
+$("redo").onclick=()=>start(missed.map(q=>q));
+$("reset").onclick=()=>{ stats={}; recent=[]; save(); info(); };
+
+function render(){
+  answered=false;
+  const cur=round[idx], q=cur.q;
+  $("bar").innerHTML = round.map((_,i)=>{
+    const r=results[i]; return '<i class="'+(r===true?"ok":r===false?"bad":i===idx?"now":"")+'"></i>';
+  }).join("");
+  $("pos").textContent="Frage "+(idx+1)+" von "+round.length;
+  const tp=topicOf(q);
+  const LBL={hpe:"HPE-Portfolio", szen:"Kundenszenario", kap:"Kapazität & RAID", bak:"Backup & Hochverfügbarkeit", srv:"Server & Verkabelung"};
+  $("tag").textContent = LBL[tp] || (q.lvl==="basis" ? "Grundlagen" : "Vertiefung");
+  $("qtext").textContent=q.q;
+  const keys=["A","B","C","D"];
+  $("opts").innerHTML = cur.opts.map((o,i)=>
+    '<button class="opt" data-i="'+o.i+'"><span class="k">'+keys[i]+'</span><span>'+o.t+'</span></button>').join("");
+  [...$("opts").children].forEach(b=>b.onclick=()=>answer(parseInt(b.dataset.i,10)));
+  $("hintBtn").classList.toggle("hide", !q.h);
+  $("hintText").classList.add("hide"); $("hintText").textContent=q.h||"";
+  $("verdict").classList.add("hide");
+  $("next").classList.add("hide");
+  $("next").textContent = idx===round.length-1 ? "Auswerten" : "Weiter";
+}
+$("hintBtn").onclick=()=>{ $("hintText").classList.remove("hide"); $("hintBtn").classList.add("hide"); };
+
+function answer(pick){
+  if(answered) return; answered=true;
+  const cur=round[idx], q=cur.q, ok=pick===q.a;
+  results[idx]=ok;
+  const s=stats[q.id]||{r:0,w:0}; ok?s.r++:s.w++; stats[q.id]=s;
+  recent=[q.id].concat(recent.filter(x=>x!==q.id)).slice(0,14);
+  save();
+  if(!ok) missed.push(q);
+  [...$("opts").children].forEach(b=>{
+    const i=parseInt(b.dataset.i,10); b.disabled=true;
+    if(i===q.a) b.classList.add("pick-ok");
+    else if(i===pick) b.classList.add("pick-bad");
+    else b.classList.add("dim");
+  });
+  $("bar").children[idx].className = ok?"ok":"bad";
+  $("hintBtn").classList.add("hide");
+  const v=$("verdict"); v.className="verdict "+(ok?"win":"lose");
+  $("vhead").textContent = ok ? "Richtig" : "Richtig wäre: "+q.o[q.a];
+  $("vbody").textContent = q.e;
+  $("next").classList.remove("hide");
+  $("next").focus({preventScroll:true});
+}
+$("next").onclick=()=>{ if(idx<round.length-1){ idx++; render(); } else finish(); };
+
+document.addEventListener("keydown",e=>{
+  if($("quiz").classList.contains("hide")) return;
+  if(!answered && ["1","2","3","4"].includes(e.key)){
+    const b=$("opts").children[parseInt(e.key,10)-1]; if(b) b.click();
+  } else if(answered && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); $("next").click(); }
+});
+
+function finish(){
+  const right=results.filter(Boolean).length;
+  $("score").textContent=right+" / "+round.length;
+  const pct=right/round.length;
+  $("scoreNote").textContent = pct===1 ? "Alles sitzt." : pct>=0.7 ? "Solide, die Lücken stehen unten." : "Da ist noch Luft – die Punkte unten lohnen sich.";
+  $("redo").classList.toggle("hide", missed.length===0);
+  $("missBox").classList.toggle("hide", missed.length===0);
+  $("missList").innerHTML = missed.map(q=>
+    '<article><p class="mq">'+q.q+'</p><p class="ma">'+q.o[q.a]+'</p></article>').join("");
+  info(); show("end");
+}
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+}
+</script>
+</body>
+</html>
