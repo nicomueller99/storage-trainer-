@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Storage-Trainer</title>
+<title>Solution Trainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Storage-Trainer">
+<meta name="apple-mobile-web-app-title" content="Solution Trainer">
 <meta name="theme-color" content="#FBFBF9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1215" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -83,6 +83,7 @@ h1{font-size:23px; font-weight:600; letter-spacing:-0.01em; margin:0 0 4px;}
   padding:13px; cursor:pointer; margin-top:10px;
 }
 .stats{font-size:13px; color:var(--ink-3); margin-top:22px; padding-top:16px; border-top:1px solid var(--line)}
+.back{background:none; border:0; color:var(--ink-3); font:inherit; font-size:14px; padding:0 0 14px; cursor:pointer}
 .bar{display:flex; gap:3px; margin-bottom:22px}
 .bar i{flex:1; height:4px; border-radius:2px; background:var(--line)}
 .bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)} .bar i.now{background:var(--ink-3)}
@@ -127,21 +128,30 @@ h1{font-size:23px; font-weight:600; letter-spacing:-0.01em; margin:0 0 4px;}
 <div class="wrap">
 
 <section id="start">
-  <h1>Storage-Protokolle</h1>
+  <h1>Solution Trainer</h1>
   <p class="lede">Jede Runde zieht neue Fragen aus dem Pool. Was du falsch hattest, kommt häufiger dran.</p>
 
   <div class="setting">
-    <span>Thema</span>
+    <span>Thema &mdash; mehrere wählbar</span>
     <div class="chips" id="segTopic">
       <button data-v="alle" aria-pressed="true">Alles</button>
-      <button data-v="proto" aria-pressed="false">Protokolle</button>
+      <button data-v="@storage" aria-pressed="false">Storage</button>
+      <button data-v="proto" aria-pressed="false">Storage &amp; Protokolle</button>
       <button data-v="kap" aria-pressed="false">Kapazität &amp; RAID</button>
       <button data-v="ded" aria-pressed="false">Datenreduktion</button>
-      <button data-v="bak" aria-pressed="false">Backup &amp; HA</button>
+      <button data-v="srv" aria-pressed="false">Compute</button>
       <button data-v="virt" aria-pressed="false">Virtualisierung</button>
-      <button data-v="srv" aria-pressed="false">Server &amp; Verkabelung</button>
-      <button data-v="hpe" aria-pressed="false">HPE</button>
-      <button data-v="szen" aria-pressed="false">Szenarien</button>
+      <button data-v="bak" aria-pressed="false">Backup &amp; HA</button>
+      <button data-v="szen" aria-pressed="false">Konzeption</button>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span>Herstellerfragen</span>
+    <div class="seg" id="segVend">
+      <button data-v="alle" aria-pressed="true">Alle</button>
+      <button data-v="neutral" aria-pressed="false">Neutral</button>
+      <button data-v="only" aria-pressed="false">Nur Hersteller</button>
     </div>
   </div>
 
@@ -168,6 +178,7 @@ h1{font-size:23px; font-weight:600; letter-spacing:-0.01em; margin:0 0 4px;}
 </section>
 
 <section id="quiz" class="hide">
+  <button class="back" id="back">← Menü</button>
   <div class="bar" id="bar"></div>
   <div class="meta"><span id="pos"></span><span class="tag" id="tag"></span></div>
   <h2 class="q" id="qtext"></h2>
@@ -372,64 +383,64 @@ const POOL = [
  o:["Das Array startet von einem Server","Der Server bootet von einem Volume im Speichernetz statt von lokalen Platten","Das SAN wird beim Serverstart neu initialisiert","Eine Backup-Methode für Boot-Laufwerke"],a:1,
  e:"Der Server braucht dafür kein lokales Laufwerk – praktisch beim Hardwaretausch. Bei NVMe-oF ist Boot-from-SAN allerdings nicht überall unterstützt, das gehört vorab geprüft."},
 
-{id:"h01",lvl:"basis",t:"hpe",q:"Welche Host-Protokolle unterstützt die HPE Alletra Storage MP B10000?",
+{id:"h01",lvl:"basis",t:"proto",v:"hpe",q:"Welche Host-Protokolle unterstützt die HPE Alletra Storage MP B10000?",
  o:["Nur Fibre Channel","FC, NVMe/FC, iSCSI und NVMe/TCP","FC, iSCSI und NVMe/RoCEv2","Ausschließlich NFS und SMB"],a:1,
  e:"Die B10000 bietet 32/64G-FC-HBAs für SCSI-FC und NVMe/FC sowie 10/25-GbE-HBAs für iSCSI und NVMe/TCP. RoCE ist nicht dabei. Quelle: HPE QuickSpecs B10000."},
-{id:"h02",lvl:"tief",t:"hpe",q:"Können auf der B10000 iSCSI und NVMe/TCP denselben Ethernet-Port nutzen?",
+{id:"h02",lvl:"tief",t:"proto",v:"hpe",q:"Können auf der B10000 iSCSI und NVMe/TCP denselben Ethernet-Port nutzen?",
  o:["Ja, beliebig gemischt","Nein, beide brauchen getrennte, dedizierte Ports","Nur bei 25 GbE","Nur mit Zusatzlizenz"],a:1,
  e:"iSCSI und NVMe/TCP können sich einen Port nicht teilen; sie belegen getrennte Portsets. Bei FC ist es anders: dort trägt ein Port zwei WWNs und bedient SCSI-FC und NVMe/FC parallel. Quelle: HPE Support-Doku Alletra Storage MP."},
-{id:"h03",lvl:"tief",t:"hpe",q:"Wie meldet die B10000 ihre Pfade an den Host?",
+{id:"h03",lvl:"tief",t:"proto",v:"hpe",q:"Wie meldet die B10000 ihre Pfade an den Host?",
  o:["Immer über ALUA","ALUA für FC und iSCSI, ANA für NVMe/FC und NVMe/TCP","Immer über ANA","Über LACP im Switch"],a:1,
  e:"Die virtuellen Volumes werden per ALUA an FC- und iSCSI-Hosts gemeldet, per ANA an NVMe-Hosts. Alle Controller nehmen I/O an und verarbeiten sie selbst. Quelle: HPE Architecture Whitepaper B10000."},
-{id:"h04",lvl:"basis",t:"hpe",q:"Welche Host-Anbindungen bietet die HPE MSA Gen7 (2070/2072)?",
+{id:"h04",lvl:"basis",t:"proto",v:"hpe",q:"Welche Host-Anbindungen bietet die HPE MSA Gen7 (2070/2072)?",
  o:["16/32G FC, 10/25GbE iSCSI, 10GBase-T und 12G SAS","Nur FC und iSCSI","FC, iSCSI und NVMe/TCP","Nur SAS"],a:0,
  e:"Das Modell legt das Protokoll fest, es wird nicht nachträglich umgestellt. Vier Hostports je Controller, acht je Array. Quelle: HPE MSA Gen7 QuickSpecs."},
-{id:"h05",lvl:"tief",t:"hpe",q:"Unterstützt die MSA Gen7 NVMe-over-Fabrics als Host-Protokoll?",
+{id:"h05",lvl:"tief",t:"proto",v:"hpe",q:"Unterstützt die MSA Gen7 NVMe-over-Fabrics als Host-Protokoll?",
  o:["Ja, über NVMe/TCP","Ja, über FC-NVMe","Nein – FC, iSCSI und SAS, kein NVMe-oF","Nur in der TAA-Variante"],a:2,
  e:"NVMe-oF ist im Einstiegssegment der MSA nicht vorgesehen. Fordert eine Ausschreibung NVMe-oF, führt der Weg zur Alletra MP B10000. Quelle: HPE MSA Gen7 QuickSpecs."},
-{id:"h06",lvl:"basis",t:"hpe",q:"Wofür steht die HPE Alletra Storage MP X10000?",
+{id:"h06",lvl:"basis",t:"proto",v:"hpe",q:"Wofür steht die HPE Alletra Storage MP X10000?",
  o:["Ein Blockarray für Datenbanken","Ein Scale-out-Objektspeicher mit nativer S3- und S3a-API","Ein Backup-Appliance-Ersatz für StoreOnce","Ein Dateiserver für Windows"],a:1,
  e:"Der X10000 ist All-Flash-Objektspeicher auf Alletra-MP-Hardware, containerbasiert und über GreenLake verwaltet. Typische Fälle: S3-Data-Lakes, Backup-Ziel, AI- und RAG-Workloads. Quelle: hpe.com."},
-{id:"h07",lvl:"basis",t:"hpe",q:"Worauf basiert HPE GreenLake for File Storage?",
+{id:"h07",lvl:"basis",t:"proto",v:"hpe",q:"Worauf basiert HPE GreenLake for File Storage?",
  o:["Auf NetApp ONTAP","Auf VAST-Data-Software auf HPE Alletra Storage MP Hardware","Auf Windows Server mit Storage Spaces","Auf Ceph"],a:1,
  e:"HPE liefert die Alletra-MP-Hardware und das Management über GreenLake, die Dateidienste kommen von VAST Data. Architektur: Disaggregated Shared Everything. Quelle: HPE Service Description."},
-{id:"h08",lvl:"basis",t:"hpe",q:"Welche Protokolle liefert HPE GreenLake for File Storage?",
+{id:"h08",lvl:"basis",t:"proto",v:"hpe",q:"Welche Protokolle liefert HPE GreenLake for File Storage?",
  o:["NFS und SMB","Nur NFS","Nur SMB","iSCSI und NFS"],a:0,
  e:"Multiprotokoll-Zugriff auf dieselben Daten über NFS und SMB. Zielbild sind unstrukturierte Daten, AI- und Analytics-Workloads. Quelle: HPE."},
-{id:"h09",lvl:"tief",t:"hpe",q:"Wie hieß die HPE Alletra Storage MP B10000 vor der Umbenennung?",
+{id:"h09",lvl:"tief",t:"proto",v:"hpe",q:"Wie hieß die HPE Alletra Storage MP B10000 vor der Umbenennung?",
  o:["HPE Primera","HPE Nimble Storage","HPE GreenLake for Block Storage built on HPE Alletra Storage MP","HPE 3PAR StoreServ"],a:2,
  e:"Der Name wurde gestrafft, die Plattform blieb dieselbe. In älteren Unterlagen und Ausschreibungstexten taucht die alte Bezeichnung noch auf. Quelle: HPE QuickSpecs B10000."},
-{id:"h10",lvl:"basis",t:"hpe",q:"Worüber wird die HPE Alletra Storage MP verwaltet?",
+{id:"h10",lvl:"basis",t:"proto",v:"hpe",q:"Worüber wird die HPE Alletra Storage MP verwaltet?",
  o:["Über iLO","Über die Data Services Cloud Console auf der GreenLake-Plattform","Über OneView","Über den lokalen Array-Webserver"],a:1,
  e:"Block, File und Object der Alletra-MP-Familie laufen in derselben Cloud-Konsole zusammen. Das ist auch ein Argument gegen Insellösungen im Angebot. Quelle: HPE."},
-{id:"h11",lvl:"basis",t:"hpe",q:"Was ist das Kernprinzip von HPE Zerto?",
+{id:"h11",lvl:"basis",t:"bak",v:"hpe",q:"Was ist das Kernprinzip von HPE Zerto?",
  o:["Snapshots im Stundenrhythmus","Continuous Data Protection: jeder Schreibvorgang wird fortlaufend in ein Journal repliziert","Bandsicherung mit Deduplizierung","Synchrone Spiegelung zweier Arrays"],a:1,
  e:"Zerto repliziert jeden Write nahezu in Echtzeit und setzt alle paar Sekunden Checkpoints. Damit lässt sich auf einen Punkt kurz vor dem Vorfall zurückspulen. Quelle: HPE Zerto QuickSpecs."},
-{id:"h12",lvl:"tief",t:"hpe",q:"Was ist eine VRA bei HPE Zerto?",
+{id:"h12",lvl:"tief",t:"bak",v:"hpe",q:"Was ist eine VRA bei HPE Zerto?",
  o:["Eine physische Appliance im Rechenzentrum","Eine virtuelle Appliance je Hypervisor-Host, die Replikation und Journal verwaltet","Ein Lizenzmodell","Ein Speicher-Pool auf dem Array"],a:1,
  e:"Die Virtual Replication Appliance läuft auf jedem beteiligten Host, kopiert jeden Write und führt das Journal je geschützter VM. Agenten in den VMs sind nicht nötig. Quelle: Zerto Architecture Guide."},
-{id:"h13",lvl:"tief",t:"hpe",q:"Welche Werte nennt HPE für Zerto als Zielgrößen?",
+{id:"h13",lvl:"tief",t:"bak",v:"hpe",q:"Welche Werte nennt HPE für Zerto als Zielgrößen?",
  o:["RPO Stunden, RTO Tage","RPO Sekunden, RTO Minuten","RPO null, RTO null","RPO Minuten, RTO Stunden"],a:1,
  e:"Sekunden Datenverlust, Minuten Wiederanlauf. Das Journal hält bis zu 30 Tage Historie – der maßgebliche Unterschied zu klassischem Backup. Quelle: HPE Zerto QuickSpecs."},
-{id:"h14",lvl:"tief",t:"hpe",q:"Was ist MSA-DP+?",
+{id:"h14",lvl:"tief",t:"kap",v:"hpe",q:"Was ist MSA-DP+?",
  o:["Ein Lizenzpaket für erweiterte Datendienste","Ein verteiltes RAID-Verfahren der MSA neben den klassischen Leveln 0/1/5/6/10","Ein Protokoll für Remote-Replikation","Ein Verschlüsselungsverfahren"],a:1,
  e:"MSA-DP+ verteilt Daten und Reservekapazität über alle Laufwerke einer Gruppe. Der Rebuild läuft dadurch schneller als bei klassischem RAID mit dedizierter Hot Spare. Quelle: HPE MSA Gen7 QuickSpecs."},
-{id:"h15",lvl:"tief",t:"hpe",q:"Ist eine MSA Gen7 mit nur einem Controller bestellbar?",
+{id:"h15",lvl:"tief",t:"kap",v:"hpe",q:"Ist eine MSA Gen7 mit nur einem Controller bestellbar?",
  o:["Ja, als Einstiegsvariante","Nein – Gen7 gibt es nur mit zwei Controllern; Einzelbetrieb nur im Failover","Ja, aber ohne Snapshots","Nur bei den SAS-Modellen"],a:1,
  e:"Single-Controller-Konfigurationen sind bei Gen7 abgekündigt. Ein Array läuft einzeln nur, solange der Partner ausgefallen ist. Quelle: HPE MSA Gen7 QuickSpecs."},
-{id:"h16",lvl:"tief",t:"hpe",q:"Was bedeutet DASE bei der Alletra Storage MP?",
+{id:"h16",lvl:"tief",t:"kap",v:"hpe",q:"Was bedeutet DASE bei der Alletra Storage MP?",
  o:["Dual Array Storage Engine","Disaggregated Shared Everything – Leistung und Kapazität skalieren unabhängig","Direct Attached Storage Extension","Dynamic Allocation of Storage Elements"],a:1,
  e:"Controller-Knoten und Kapazitätsgehäuse werden getrennt erweitert. Genau das ist das Argument, wenn eine Ausschreibung getrennte Skalierung von IOPS und TB verlangt. Quelle: HPE."},
-{id:"h17",lvl:"tief",t:"hpe",q:"Womit beschleunigt der X10000 den S3-Zugriff zusätzlich?",
+{id:"h17",lvl:"tief",t:"kap",v:"hpe",q:"Womit beschleunigt der X10000 den S3-Zugriff zusätzlich?",
  o:["Mit FC-Anbindung","Mit RDMA-Unterstützung für S3-kompatiblen Zugriff","Mit einem SSD-Lesecache vor den Knoten","Mit Jumbo Frames"],a:1,
  e:"HPE gibt für RDMA-beschleunigten Zugriff bis zu doppelte Leistung an. Kapazitätsseitig arbeitet der X10000 mit Erasure Coding und Inline-Datenreduktion. Quelle: hpe.com."},
-{id:"h18",lvl:"tief",t:"hpe",q:"Was gilt an der B10000 für NVMe/FC mit Windows-Hosts?",
+{id:"h18",lvl:"tief",t:"proto",v:"hpe",q:"Was gilt an der B10000 für NVMe/FC mit Windows-Hosts?",
  o:["Voll unterstützt seit Version 10.2","Nicht unterstützt – für Windows bleiben FC, iSCSI oder NVMe/TCP","Nur mit Broadcom-HBAs","Nur im Cluster"],a:1,
  e:"NVMe over FC ist auf Windows-Hosts nicht freigegeben. Genau solche Lücken gehören vor der Angebotsabgabe gegen die Support-Matrix geprüft, nicht zugesagt. Quelle: HPE Windows Implementation Guide B10000."},
-{id:"h19",lvl:"basis",t:"hpe",q:"Ein Kunde fordert Blockstorage mit NVMe-oF und getrennter Skalierung von Leistung und Kapazität. Was passt aus dem HPE-Portfolio?",
+{id:"h19",lvl:"basis",t:"szen",v:"hpe",q:"Ein Kunde fordert Blockstorage mit NVMe-oF und getrennter Skalierung von Leistung und Kapazität. Was passt aus dem HPE-Portfolio?",
  o:["MSA Gen7","Alletra Storage MP B10000","Alletra Storage MP X10000","GreenLake for File Storage"],a:1,
  e:"Die B10000 ist die einzige der vier, die NVMe-oF als Hostprotokoll und eine disaggregierte Architektur bietet. X10000 ist Object, GreenLake for File ist NAS, die MSA kann kein NVMe-oF."},
-{id:"h20",lvl:"basis",t:"hpe",q:"Welches HPE-Produkt passt als unveränderbares S3-Ziel für Backups im eigenen Rechenzentrum?",
+{id:"h20",lvl:"basis",t:"szen",v:"hpe",q:"Welches HPE-Produkt passt als unveränderbares S3-Ziel für Backups im eigenen Rechenzentrum?",
  o:["MSA Gen7","Alletra Storage MP X10000","GreenLake for File Storage","Alletra Storage MP B10000"],a:1,
  e:"Der X10000 liefert S3 nativ und wird von HPE unter anderem als modernes Datenschutzziel positioniert, inklusive Immutability. Die anderen drei sprechen kein S3."},
 
@@ -544,7 +555,7 @@ const POOL = [
  o:["Schreibvorgänge werden verschlüsselt und dadurch langsamer","Ein kleiner Schreibzugriff erfordert zusätzliche Lese- und Schreiboperationen für die Parität","Es dürfen nur sequenzielle Schreibvorgänge erfolgen","Schreibzugriffe werden auf einen Controller begrenzt"],a:1,
  e:"Für einen geänderten Block müssen alte Daten und Parität gelesen, neu berechnet und zurückgeschrieben werden. Bei RAID 6 mit zwei Paritäten ist der Aufwand höher, bei RAID 10 entfällt er weitgehend."},
 {id:"k15",lvl:"tief",t:"kap",q:"Eine Anforderung lautet „RAID 5 oder gleichwertig\". Worauf achtest du?",
- o:["Nur klassisches RAID 5 anbieten","Prüfen, ob verteilte Verfahren wie MSA-DP+ oder Erasure Coding als gleichwertig akzeptiert werden","RAID 0 anbieten, das ist schneller","Die Anforderung ignorieren"],a:1,
+ o:["Nur klassisches RAID 5 anbieten","Prüfen, ob verteilte RAID-Verfahren oder Erasure Coding als gleichwertig akzeptiert werden","RAID 0 anbieten, das ist schneller","Die Anforderung ignorieren"],a:1,
  e:"Moderne Arrays bilden oft gar keinen klassischen RAID-Level mehr ab, sondern verteilte Verfahren mit gleicher oder besserer Ausfallsicherheit. Ohne Klärung riskierst du entweder den Ausschluss oder eine unnötig schlechte Lösung."},
 
 {id:"b31",lvl:"basis",t:"bak",q:"Wofür steht die 3-2-1-Regel?",
@@ -599,16 +610,16 @@ const POOL = [
  o:["Die Daten sind verschlüsselt","Die Daten können bis zum Fristende von niemandem geändert oder gelöscht werden, auch nicht von Administratoren","Die Daten liegen schreibgeschützt auf Band","Die Daten werden versioniert"],a:1,
  e:"Der entscheidende Teil ist „auch nicht von Administratoren\". Ein Schreibschutz, den ein Konto aufheben kann, erfüllt die Anforderung nicht – und genau das ist das Angriffsziel bei Ransomware."},
 
-{id:"c01",lvl:"basis",t:"srv",q:"Wofür stehen DL, ML und RL bei HPE ProLiant?",
+{id:"c01",lvl:"basis",t:"srv",v:"hpe",q:"Wofür stehen DL, ML und RL bei HPE ProLiant?",
  o:["Drei Leistungsklassen derselben Bauform","DL Rack, ML Tower, RL Arm-basiert","DL Datenbank, ML Machine Learning, RL Rechenzentrum","Drei Generationen"],a:1,
  e:"Die Buchstaben beschreiben die Bauform beziehungsweise Architektur, die Ziffern danach Sockelzahl und Positionierung. DL380 ist der 2-Sockel-Standard im Rack, ML350 das Tower-Pendant."},
-{id:"c02",lvl:"basis",t:"srv",q:"Wofür ist iLO da?",
+{id:"c02",lvl:"basis",t:"srv",v:"hpe",q:"Wofür ist iLO da?",
  o:["Zur Verwaltung mehrerer Server über eine Konsole","Zur Fernwartung eines einzelnen Servers unabhängig vom Betriebssystem","Zur Überwachung des Speichernetzes","Zur Lizenzverwaltung"],a:1,
  e:"iLO sitzt auf dem Board und arbeitet out-of-band – auch wenn das Betriebssystem steht. Konsole, Einschalten, Firmware und Hardwarestatus laufen darüber."},
-{id:"c03",lvl:"tief",t:"srv",q:"Wie grenzen sich iLO, OneView und Compute Ops Management ab?",
+{id:"c03",lvl:"tief",t:"srv",v:"hpe",q:"Wie grenzen sich iLO, OneView und Compute Ops Management ab?",
  o:["Drei Namen für dasselbe Werkzeug","iLO je Server, OneView als lokale Verwaltung mehrerer Systeme, Compute Ops Management als Cloud-Konsole","iLO für Storage, OneView für Server, COM für Netzwerk","OneView ist der Nachfolger von iLO"],a:1,
  e:"Die Ebenen bauen aufeinander auf. In Konfigurationen ist vor allem die Lizenzierung relevant: iLO Advanced und OneView bringen einen gebundenen Supportzeitraum mit, der zur Vertragslaufzeit passen muss."},
-{id:"c04",lvl:"tief",t:"srv",q:"Was ist der Silicon Root of Trust?",
+{id:"c04",lvl:"tief",t:"srv",v:"hpe",q:"Was ist der Silicon Root of Trust?",
  o:["Ein Verschlüsselungsmodul für Festplatten","Eine Bindung der Firmware an einen HPE-eigenen ASIC – passt der Fingerabdruck nicht, startet der Server nicht","Ein Zertifikatsspeicher im Betriebssystem","Ein Sicherheitsmodul im Netzteil"],a:1,
  e:"Der Server prüft beim Start die gesamte Firmware gegen einen unveränderlichen Anker in der Hardware. In Ausschreibungen taucht das häufig als Anforderung an manipulationssichere Firmware auf."},
 {id:"c05",lvl:"tief",t:"srv",q:"Warum sollten DIMMs gleichmäßig über alle Speicherkanäle verteilt werden?",
@@ -621,7 +632,7 @@ const POOL = [
  o:["Die Kapazität verdoppelt sich ohne Nachteil","Die Taktrate kann sinken – mehr Kapazität wird mit Bandbreite erkauft","Der Server fällt auf einen Kanal zurück","Es funktioniert nur mit registriertem Speicher"],a:1,
  e:"Ob und wie stark der Takt fällt, hängt an Plattform und Speichertyp. Wenn eine Ausschreibung Kapazität und Bandbreite gleichzeitig fordert, entscheidet genau das über die Bestückungsvariante."},
 {id:"c08",lvl:"tief",t:"srv",q:"Womit prüfst du die Leistungsaufnahme einer geplanten Serverkonfiguration?",
- o:["Über die Summe der Netzteil-Wattzahlen","Mit dem HPE Power Advisor beziehungsweise im Konfigurator","Über die Angaben im Datenblatt des Gehäuses","Über eine Messung nach der Lieferung"],a:1,
+ o:["Über die Summe der Netzteil-Wattzahlen","Mit dem Leistungsrechner des Herstellers beziehungsweise im Konfigurator","Über die Angaben im Datenblatt des Gehäuses","Über eine Messung nach der Lieferung"],a:1,
  e:"Die Netzteilgröße sagt nichts über die reale Aufnahme. Ohne diese Prüfung landen unterdimensionierte oder unnötig große Netzteile in der Konfiguration – und im schlechtesten Fall fehlt die Redundanz."},
 {id:"c09",lvl:"tief",t:"srv",q:"Zwei redundante Netzteile sind verbaut. Was ist zusätzlich zu beachten?",
  o:["Nichts, damit ist die Redundanz erfüllt","Beide müssen an getrennten Stromkreisen hängen, sonst bleibt der Stromkreis der Single Point of Failure","Beide müssen unterschiedliche Wattzahlen haben","Eines muss abgeschaltet bleiben"],a:1,
@@ -707,80 +718,80 @@ const POOL = [
  o:["Nur den Preis pro TB","Worauf sich die Rate bezieht – ob Thin Provisioning, Snapshots, Klone und Nullblöcke eingerechnet sind, und für welchen Datentyp","Nur die Controller-Leistung","Nur die Laufwerksgröße"],a:1,
  e:"Manche Hersteller rechnen Thin Provisioning und Klone mit, andere weisen nur echte Deduplizierung und Komprimierung aus. Ohne gleiche Bezugsbasis vergleichst du zwei verschiedene Größen."},
 
-{id:"w01",lvl:"basis",t:"virt",q:"Was ist ESXi?",
+{id:"w01",lvl:"basis",t:"virt",v:"vmw",q:"Was ist ESXi?",
  o:["Die Verwaltungsoberfläche von VMware","Der Hypervisor selbst, der direkt auf der Hardware läuft","Ein Dateisystem für virtuelle Maschinen","Ein Backup-Agent"],a:1,
  e:"ESXi ist ein Typ-1-Hypervisor: Er läuft unmittelbar auf dem Server, ohne darunterliegendes Betriebssystem. Die Verwaltung mehrerer Hosts übernimmt vCenter."},
-{id:"w02",lvl:"basis",t:"virt",q:"Wofür wird vCenter gebraucht?",
+{id:"w02",lvl:"basis",t:"virt",v:"vmw",q:"Wofür wird vCenter gebraucht?",
  o:["Zum Starten einzelner VMs","Zur zentralen Verwaltung mehrerer ESXi-Hosts – ohne vCenter gibt es kein vMotion, DRS oder HA","Als Speicherort für die VMs","Zur Lizenzierung der Gastbetriebssysteme"],a:1,
  e:"Ein einzelner ESXi-Host läuft auch ohne vCenter. Alle Cluster-Funktionen hängen aber daran, weshalb vCenter in jeder Angebotskalkulation auftauchen muss."},
 {id:"w03",lvl:"basis",t:"virt",q:"Was unterscheidet einen Typ-1- von einem Typ-2-Hypervisor?",
  o:["Typ 1 läuft direkt auf der Hardware, Typ 2 auf einem bestehenden Betriebssystem","Typ 1 ist kostenpflichtig, Typ 2 kostenlos","Typ 1 kann nur Linux virtualisieren","Typ 2 ist schneller"],a:0,
  e:"ESXi, AHV und Hyper-V sind Typ 1 und für den Rechenzentrumsbetrieb gedacht. VirtualBox oder VMware Workstation sind Typ 2 und laufen als Anwendung auf einem Desktop."},
-{id:"w04",lvl:"basis",t:"virt",q:"Was ist VMFS?",
+{id:"w04",lvl:"basis",t:"virt",v:"vmw",q:"Was ist VMFS?",
  o:["Ein Protokoll zur Speicheranbindung","Das Clusterdateisystem von VMware auf Blockspeicher, auf das mehrere Hosts gleichzeitig zugreifen","Ein Verfahren zur Datenreduktion","Das Dateiformat einer virtuellen Festplatte"],a:1,
  e:"VMFS regelt über verteilte Sperren, dass mehrere ESXi-Hosts dieselbe LUN gleichzeitig nutzen können. Bei NFS-Datastores entfällt es, dort bringt das Storage das Dateisystem mit."},
-{id:"w05",lvl:"basis",t:"virt",q:"Was macht vMotion?",
+{id:"w05",lvl:"basis",t:"virt",v:"vmw",q:"Was macht vMotion?",
  o:["Es sichert eine VM auf ein zweites System","Es verschiebt eine laufende VM ohne Unterbrechung auf einen anderen Host","Es startet eine VM nach einem Ausfall neu","Es kopiert eine VM in die Cloud"],a:1,
  e:"Der Arbeitsspeicher wird im laufenden Betrieb übertragen, der Umschaltmoment liegt im Millisekundenbereich. Voraussetzung ist gemeinsamer Speicher oder, bei vSphere, die Variante ohne Shared Storage."},
-{id:"w06",lvl:"tief",t:"virt",q:"Was unterscheidet vMotion von Storage vMotion?",
+{id:"w06",lvl:"tief",t:"virt",v:"vmw",q:"Was unterscheidet vMotion von Storage vMotion?",
  o:["vMotion verschiebt den Rechenort, Storage vMotion den Speicherort der Dateien","Storage vMotion ist die ältere Bezeichnung","vMotion funktioniert nur im selben Rack","Es gibt keinen Unterschied"],a:0,
  e:"Mit vMotion wechselt die VM den Host, mit Storage vMotion wechseln ihre Dateien den Datastore. Letzteres ist das Werkzeug für Storage-Migrationen im laufenden Betrieb."},
-{id:"w07",lvl:"basis",t:"virt",q:"Was macht vSphere HA bei einem Hostausfall?",
+{id:"w07",lvl:"basis",t:"virt",v:"vmw",q:"Was macht vSphere HA bei einem Hostausfall?",
  o:["Es führt die VMs unterbrechungsfrei weiter","Es startet die betroffenen VMs auf anderen Hosts neu","Es verschiebt die VMs vorab","Es erstellt ein Backup"],a:1,
  e:"HA bedeutet Neustart, nicht unterbrechungsfreien Betrieb. Die VMs sind also kurz weg – ein Punkt, den Kunden regelmäßig anders erwarten, als er tatsächlich funktioniert."},
-{id:"w08",lvl:"tief",t:"virt",q:"Was unterscheidet Fault Tolerance von HA?",
+{id:"w08",lvl:"tief",t:"virt",v:"vmw",q:"Was unterscheidet Fault Tolerance von HA?",
  o:["FT ist die günstigere Variante","FT führt eine synchrone Schattenkopie der VM mit und überbrückt den Ausfall ohne Neustart","FT ersetzt das Backup","FT funktioniert nur mit NFS"],a:1,
  e:"FT läuft wirklich unterbrechungsfrei, kostet aber doppelte Ressourcen und ist bei der Anzahl der vCPUs stark begrenzt. Es ist eine Ausnahmelösung für einzelne kritische VMs, kein Clusterkonzept."},
-{id:"w09",lvl:"tief",t:"virt",q:"Was leistet DRS?",
+{id:"w09",lvl:"tief",t:"virt",v:"vmw",q:"Was leistet DRS?",
  o:["Es sichert VMs automatisch","Es verteilt VMs anhand der Auslastung automatisch zwischen den Hosts","Es repliziert VMs in ein zweites Rechenzentrum","Es überwacht die Speicherbelegung"],a:1,
  e:"DRS nutzt vMotion, um Lastspitzen auszugleichen. Es setzt vCenter und gemeinsamen Speicher voraus und ist nicht in jeder Lizenzstufe enthalten."},
 {id:"w10",lvl:"tief",t:"virt",q:"Warum ist ein VM-Snapshot kein Backup?",
  o:["Weil er zu lange dauert","Weil die Delta-Datei auf demselben Datastore liegt, mitwächst und bei dessen Verlust ebenfalls weg ist","Weil er keine Konsistenz herstellt","Weil er nur einmal pro VM möglich ist"],a:1,
  e:"Snapshots sind als kurzfristiger Rückfallpunkt gedacht, etwa vor einem Update. Lange laufende Snapshots kosten spürbar Leistung und werden beim Zusammenführen selbst zum Risiko."},
-{id:"w11",lvl:"tief",t:"virt",q:"Wofür steht CBT bei VMware?",
+{id:"w11",lvl:"tief",t:"virt",v:"vmw",q:"Wofür steht CBT bei VMware?",
  o:["Cluster Backup Target","Changed Block Tracking – das Nachhalten geänderter Blöcke für inkrementelle Backups","Central Backup Transfer","Compressed Block Transfer"],a:1,
  e:"Ohne CBT müsste jedes Backup die komplette virtuelle Festplatte lesen. Backup-Produkte wie Veeam setzen darauf auf – fehlerhafte CBT-Daten sind eine klassische Ursache für zu große Inkremente."},
-{id:"w12",lvl:"tief",t:"virt",q:"Was ist VAAI?",
+{id:"w12",lvl:"tief",t:"virt",v:"vmw",q:"Was ist VAAI?",
  o:["Ein Netzwerkprotokoll","Eine Schnittstelle, über die ESXi Speicheroperationen an das Array auslagert","Ein Lizenzmodell","Ein Verschlüsselungsverfahren"],a:1,
  e:"Kopieren oder Nullsetzen übernimmt das Array selbst, statt die Daten durch den Host zu schleifen. Ob ein Array die Primitive unterstützt, gehört in jede Storage-Bewertung für VMware-Umgebungen."},
-{id:"w13",lvl:"tief",t:"virt",q:"Was sind vVols?",
+{id:"w13",lvl:"tief",t:"virt",v:"vmw",q:"Was sind vVols?",
  o:["Besonders große LUNs","VM-granulare Objekte auf dem Array statt einer LUN mit VMFS darauf","Virtuelle Netzwerkadapter","Eine Snapshot-Technik des Hypervisors"],a:1,
  e:"Mit vVols kennt das Array die einzelne VM und kann Snapshots, Replikation und QoS je VM anwenden. Der Preis ist eine engere Abhängigkeit von der Array-Integration über VASA."},
-{id:"w14",lvl:"tief",t:"virt",q:"Was ist vSAN?",
+{id:"w14",lvl:"tief",t:"virt",v:"vmw",q:"Was ist vSAN?",
  o:["Ein Protokoll für Speichernetze","Softwaredefinierter Speicher aus den lokalen Laufwerken der ESXi-Hosts","Ein externes Speichersystem von VMware","Ein Backup-Produkt"],a:1,
  e:"vSAN macht aus den Hosts selbst das Speichersystem, also hyperkonvergent. In den aktuellen Bundles ist eine Kapazität je lizenziertem Core enthalten, darüber hinaus wird nachlizenziert."},
-{id:"w15",lvl:"tief",t:"virt",q:"Wie verkauft Broadcom VMware heute?",
+{id:"w15",lvl:"tief",t:"virt",v:"vmw",q:"Wie verkauft Broadcom VMware heute?",
  o:["Als unbefristete Lizenz je Sockel","Als Abonnement je physischem Core, gebündelt in VVF oder VCF","Als Abonnement je virtueller Maschine","Als Abonnement je Cluster"],a:1,
  e:"Unbefristete Lizenzen gibt es nicht mehr, vSphere Standard und Enterprise Plus wurden in die Bündel überführt. Gezählt werden physische Kerne, nicht Sockel oder VMs."},
-{id:"w16",lvl:"tief",t:"virt",q:"Ein Server hat zwei Prozessoren mit je acht Kernen. Wie viele Cores sind bei VMware zu lizenzieren?",
+{id:"w16",lvl:"tief",t:"virt",v:"vmw",q:"Ein Server hat zwei Prozessoren mit je acht Kernen. Wie viele Cores sind bei VMware zu lizenzieren?",
  o:["16","32","8","24"],a:1,
  h:"Es gilt ein Mindestwert je Prozessor.",
  e:"Broadcom setzt mindestens 16 Kerne je Prozessor an, auch wenn physisch weniger verbaut sind. Zwei Prozessoren ergeben also 32 Cores – bei kleinen CPUs ein erheblicher Kostentreiber, der in die Serverauswahl gehört."},
-{id:"w17",lvl:"tief",t:"virt",q:"Worin unterscheiden sich VVF und VCF?",
+{id:"w17",lvl:"tief",t:"virt",v:"vmw",q:"Worin unterscheiden sich VVF und VCF?",
  o:["VVF ist die Cloud-Variante","VCF enthält zusätzlich NSX, Automatisierung und deutlich mehr vSAN-Kapazität je Core","VVF enthält kein vCenter","VCF ist nur für Edge-Umgebungen"],a:1,
  e:"VVF deckt Virtualisierung und Betrieb ab, VCF den kompletten Private-Cloud-Stack. Wer kein softwaredefiniertes Netzwerk braucht, zahlt bei VCF für Funktionen, die ungenutzt bleiben."},
-{id:"w18",lvl:"tief",t:"virt",q:"Was unterscheidet thin von thick provisionierten virtuellen Festplatten?",
+{id:"w18",lvl:"tief",t:"virt",v:"vmw",q:"Was unterscheidet thin von thick provisionierten virtuellen Festplatten?",
  o:["Thin belegt Platz erst beim Schreiben, thick reserviert ihn sofort","Thick ist immer langsamer","Thin funktioniert nur auf NFS","Es betrifft nur die Snapshot-Fähigkeit"],a:0,
  e:"Thin spart Platz, erfordert aber Überwachung des Datastores. Gefährlich wird die Kombination aus thin auf Hypervisor-Ebene und thin auf Array-Ebene, wenn niemand den realen Füllstand im Blick hat."},
-{id:"w19",lvl:"basis",t:"virt",q:"Was ist ein Cluster Shared Volume (CSV) bei Hyper-V?",
+{id:"w19",lvl:"basis",t:"virt",v:"vmw",q:"Was ist ein Cluster Shared Volume (CSV) bei Hyper-V?",
  o:["Ein Volume, auf das mehrere Clusterknoten gleichzeitig zugreifen","Ein gespiegeltes Volume zwischen zwei Standorten","Ein Volume nur für Clusterkonfiguration","Ein Volume für Quorum-Daten"],a:0,
  e:"Das CSV ist bei Hyper-V das Gegenstück zum VMFS-Datastore: gemeinsamer Blockspeicher, auf dem die VMs mehrerer Knoten liegen. Dazu kommt als Alternative die Ablage auf einer SMB3-Freigabe."},
-{id:"w20",lvl:"basis",t:"virt",q:"Welches Dateiformat nutzen virtuelle Festplatten unter Hyper-V?",
+{id:"w20",lvl:"basis",t:"virt",v:"vmw",q:"Welches Dateiformat nutzen virtuelle Festplatten unter Hyper-V?",
  o:["VMDK","VHDX","QCOW2","VDI"],a:1,
  e:"VHDX ist der Nachfolger von VHD und bei Hyper-V Standard. VMDK ist das VMware-Format, QCOW2 stammt aus der KVM-Welt – bei Migrationen muss konvertiert werden."},
-{id:"w21",lvl:"basis",t:"virt",q:"Was ist AHV?",
+{id:"w21",lvl:"basis",t:"virt",v:"vmw",q:"Was ist AHV?",
  o:["Die Verwaltungsoberfläche von Nutanix","Nutanix' eigener Typ-1-Hypervisor auf KVM-Basis","Ein Speicherprotokoll von Nutanix","Ein Backup-Produkt"],a:1,
  e:"AHV ist in der Nutanix-Lizenz enthalten und verursacht keine separaten Hypervisor-Kosten. Genau das ist seit der Broadcom-Umstellung sein stärkstes Verkaufsargument."},
-{id:"w22",lvl:"tief",t:"virt",q:"Was ist die CVM bei Nutanix?",
+{id:"w22",lvl:"tief",t:"virt",v:"vmw",q:"Was ist die CVM bei Nutanix?",
  o:["Eine zentrale Verwaltungsinstanz für den gesamten Cluster","Eine Controller-VM auf jedem Knoten, die den gesamten Storage-I/O dieses Knotens übernimmt","Eine virtuelle Maschine für Clusterdienste im Standby","Der Name des Nutanix-Dateisystems"],a:1,
  e:"Jeder Knoten ist damit sein eigener Speichercontroller, einen zentralen Flaschenhals gibt es nicht. Die CVM braucht dafür fest zugewiesene CPU und RAM – das muss bei der Dimensionierung abgezogen werden."},
-{id:"w23",lvl:"tief",t:"virt",q:"Was bedeutet Datenlokalität bei Nutanix?",
+{id:"w23",lvl:"tief",t:"virt",v:"vmw",q:"Was bedeutet Datenlokalität bei Nutanix?",
  o:["Daten dürfen das Rechenzentrum nicht verlassen","Die Daten einer VM liegen bevorzugt auf dem Knoten, auf dem sie läuft","Alle Daten liegen auf einem zentralen Knoten","Daten werden nach Standort verschlüsselt"],a:1,
  e:"Lesezugriffe bleiben dadurch lokal und sparen den Weg über das Netz. Nach einer Migration zieht Nutanix die Daten nach, bis die Lokalität wiederhergestellt ist."},
-{id:"w24",lvl:"tief",t:"virt",q:"Was unterscheidet Prism Element von Prism Central?",
+{id:"w24",lvl:"tief",t:"virt",v:"vmw",q:"Was unterscheidet Prism Element von Prism Central?",
  o:["Prism Element verwaltet einen Cluster, Prism Central mehrere","Prism Central ist die ältere Version","Prism Element läuft nur mit ESXi","Prism Central ist nur für Backups"],a:0,
  e:"Prism Element ist auf jedem Cluster vorhanden. Prism Central kommt als eigene VM hinzu und ist Voraussetzung für übergreifende Funktionen – das wird bei Konfigurationen gern vergessen."},
-{id:"w25",lvl:"tief",t:"virt",q:"Was bedeutet RF2 beziehungsweise RF3 bei Nutanix?",
+{id:"w25",lvl:"tief",t:"virt",v:"vmw",q:"Was bedeutet RF2 beziehungsweise RF3 bei Nutanix?",
  o:["Die Anzahl der Netzwerkpfade","Der Replikationsfaktor: zwei beziehungsweise drei Kopien jedes Datenblocks im Cluster","Die Anzahl der Controller je Knoten","Die RAID-Stufe der lokalen Laufwerke"],a:1,
  e:"RF2 verkraftet den Ausfall eines Knotens, RF3 den von zweien – kostet dafür aber ein Drittel statt der Hälfte der Rohkapazität zusätzlich. RF3 verlangt zudem eine Mindestanzahl Knoten."},
 {id:"w26",lvl:"basis",t:"virt",q:"Was kennzeichnet eine hyperkonvergente Infrastruktur (HCI)?",
@@ -795,24 +806,131 @@ const POOL = [
 {id:"w29",lvl:"tief",t:"virt",q:"Warum macht das Zuweisen weiterer vCPUs eine VM nicht zwangsläufig schneller?",
  o:["Weil der Hypervisor vCPUs ignoriert","Weil breite VMs länger auf gleichzeitig freie Kerne warten müssen","Weil die Lizenz das begrenzt","Weil vCPUs nur beim Start zählen"],a:1,
  e:"Der Scheduler muss für eine VM mit acht vCPUs genügend Kerne gleichzeitig bereitstellen. Auf einem ausgelasteten Host wartet diese VM länger als eine mit zwei vCPUs – mehr zuweisen verschlimmert das Problem oft."},
-{id:"w30",lvl:"tief",t:"virt",q:"Ein Kunde will wegen der VMware-Kosten wechseln und hat drei Hosts mit externem Storage. Worauf weist du bei Nutanix hin?",
+{id:"w30",lvl:"tief",t:"virt",v:"vmw",q:"Ein Kunde will wegen der VMware-Kosten wechseln und hat drei Hosts mit externem Storage. Worauf weist du bei Nutanix hin?",
  o:["Nutanix läuft auf jeder vorhandenen Hardware weiter","Nutanix ist hyperkonvergent – das vorhandene Array wird in der Regel nicht weitergenutzt, die Knoten bringen den Speicher mit","Nutanix benötigt zwingend ein FC-SAN","Der Wechsel ist ohne Migration der VMs möglich"],a:1,
  e:"Der Kostenvergleich muss deshalb die Abschreibung des vorhandenen Storage und die Migration enthalten, nicht nur die Lizenzen. Umgekehrt entfällt bei AHV der separate Hypervisor-Posten – beides gehört in dieselbe Rechnung."}
+,
+{id:"g01",lvl:"basis",t:"virt",q:"Was macht ein Hypervisor?",
+ o:["Er beschleunigt den Server durch Zwischenspeicher","Er teilt die physischen Ressourcen eines Servers auf mehrere voneinander getrennte virtuelle Maschinen auf","Er verbindet mehrere Server zu einem großen System","Er verwaltet die Datensicherung"],a:1,
+ e:"Der Hypervisor sitzt zwischen Hardware und den virtuellen Maschinen und teilt CPU, Arbeitsspeicher, Netz und Speicher zu. Die VMs sind dabei gegeneinander abgeschottet."},
+{id:"g02",lvl:"basis",t:"virt",q:"Was ist eine virtuelle Maschine technisch gesehen?",
+ o:["Ein Prozess im Betriebssystem des Hosts","Ein vollständiges Betriebssystem mit eigenen virtuellen Komponenten, das als Satz von Dateien auf dem Speicher liegt","Eine Kopie des Host-Betriebssystems","Ein Container mit einer Anwendung"],a:1,
+ e:"Weil eine VM aus Dateien besteht, lässt sie sich kopieren, verschieben und sichern wie Daten. Genau das ist der eigentliche Gewinn der Virtualisierung gegenüber physischen Servern."},
+{id:"g03",lvl:"tief",t:"virt",q:"Was ist eine vCPU?",
+ o:["Ein fest zugewiesener physischer Kern","Ein virtueller Kern, den der Scheduler auf freie physische Kerne verteilt","Ein halber physischer Kern","Ein Kern im Reservezustand"],a:1,
+ e:"Es gibt keine feste Zuordnung. Mehrere VMs teilen sich dieselben physischen Kerne, was Überbuchung erst möglich macht – und bei zu hoher Last zu Wartezeiten führt."},
+{id:"g04",lvl:"tief",t:"virt",q:"Wozu dienen die Gast-Erweiterungen beziehungsweise paravirtualisierten Treiber?",
+ o:["Zur Lizenzierung des Gastbetriebssystems","Sie ersetzen emulierte Geräte durch optimierte Treiber für Netz und Speicher","Sie verschlüsseln die VM","Sie erzeugen Snapshots"],a:1,
+ e:"Ohne sie spricht die VM mit nachgebildeter Standardhardware, was spürbar Leistung kostet. Fehlende oder veraltete Gast-Erweiterungen sind eine der häufigsten Ursachen für unerklärlich langsame VMs."},
+{id:"g05",lvl:"basis",t:"virt",q:"Was ist Live-Migration?",
+ o:["Das Kopieren einer VM auf ein Sicherungssystem","Das Verschieben einer laufenden VM auf einen anderen Host ohne Abschaltung","Der Neustart einer VM nach einem Hostausfall","Das Umziehen einer VM in die Cloud"],a:1,
+ e:"Der Arbeitsspeicher wird im Betrieb übertragen, der eigentliche Umschaltmoment ist sehr kurz. Das ist die Grundlage für Wartung ohne Ausfallzeit."},
+{id:"g06",lvl:"tief",t:"virt",q:"Welche Voraussetzungen hat Live-Migration typischerweise?",
+ o:["Identische Hardware auf allen Hosts","Erreichbarer gemeinsamer Speicher, kompatible Prozessoren und ausreichend Netzbandbreite","Ein zweites Rechenzentrum","Abgeschaltete Snapshots"],a:1,
+ e:"Varianten ohne gemeinsamen Speicher gibt es inzwischen, sie übertragen dann zusätzlich die Festplattendaten. Die Prozessorkompatibilität bleibt aber in jedem Fall eine Bedingung."},
+{id:"g07",lvl:"tief",t:"virt",q:"Warum müssen Prozessoren in einem Virtualisierungscluster zueinander passen?",
+ o:["Wegen der Lizenzierung","Weil eine laufende VM den Befehlssatz ihrer CPU sieht und bei ungleichen Generationen nicht migriert werden kann","Weil sonst der Takt sinkt","Weil der Hypervisor nur einen CPU-Typ unterstützt"],a:1,
+ e:"Hypervisor lösen das, indem sie clusterweit einen gemeinsamen Befehlssatz erzwingen und neuere Funktionen ausblenden. Beim Mischen von Servergenerationen gehört dieser Punkt vorab geprüft."},
+{id:"g08",lvl:"basis",t:"virt",q:"Was ist ein Virtualisierungscluster?",
+ o:["Ein Server mit besonders vielen VMs","Mehrere Hosts, die als Verbund VMs tragen und sich bei Ausfall gegenseitig vertreten","Ein Verbund mehrerer Speichersysteme","Mehrere VMs mit derselben Aufgabe"],a:1,
+ e:"Der Verbund braucht gemeinsamen Speicher oder verteilten Speicher, eine Verwaltungsinstanz und ein Verfahren zur Mehrheitsfindung. Erst dann lassen sich Ausfälle automatisch abfangen."},
+{id:"g09",lvl:"tief",t:"virt",q:"Was unterscheidet Hochverfügbarkeit von Lastverteilung im Cluster?",
+ o:["Nichts, beide Begriffe meinen dasselbe","Hochverfügbarkeit reagiert auf Ausfälle, Lastverteilung auf ungleiche Auslastung","Lastverteilung läuft nur manuell","Hochverfügbarkeit gibt es nur mit drei Knoten"],a:1,
+ e:"Das eine startet VMs nach einem Hostausfall neu, das andere verschiebt sie im Normalbetrieb dorthin, wo Luft ist. Beides sind getrennte Funktionen und oft auch getrennt lizenziert."},
+{id:"g10",lvl:"basis",t:"virt",q:"Was ist ein Datenspeicher (Datastore) in der Virtualisierung?",
+ o:["Der Arbeitsspeicher der VMs","Der Speicherbereich, in dem die Dateien der virtuellen Maschinen liegen","Die Datenbank der Verwaltungssoftware","Ein Sicherungsziel"],a:1,
+ e:"Je nach Anbindung liegt darunter eine LUN mit Clusterdateisystem oder eine Dateifreigabe. Für den Betrieb ist vor allem der Füllstand kritisch – ein volllaufender Datenspeicher legt alle VMs darauf still."},
+{id:"g11",lvl:"tief",t:"virt",q:"Welches Risiko entsteht, wenn sowohl der Hypervisor als auch das Array dünn provisionieren?",
+ o:["Die Leistung halbiert sich","Doppelte Überbuchung – niemand sieht den realen Füllstand, bis der Pool volläuft","Snapshots funktionieren nicht mehr","Die Kapazität wird doppelt berechnet"],a:1,
+ e:"Beide Ebenen melden freien Platz, den es physisch nicht gibt. Entweder man provisioniert nur auf einer Ebene dünn, oder die Überwachung muss beide Ebenen zusammen betrachten."},
+{id:"g12",lvl:"tief",t:"virt",q:"Was ist Memory Ballooning?",
+ o:["Das Vergrößern des Arbeitsspeichers im laufenden Betrieb","Der Hypervisor fordert über einen Treiber im Gast ungenutzten Speicher zurück, bevor er auslagern muss","Das Auslagern von Speicher auf die Festplatte","Eine Komprimierung des Arbeitsspeichers"],a:1,
+ e:"Der Gast gibt freiwillig her, was er nicht braucht – das ist der schonendste Weg bei Speicherknappheit. Voraussetzung ist der Ballooning-Treiber aus den Gast-Erweiterungen."},
+{id:"g13",lvl:"tief",t:"virt",q:"Was passiert bei Überbuchung des Arbeitsspeichers, wenn physisch nichts mehr frei ist?",
+ o:["Die VMs werden pausiert","Der Hypervisor lagert Speicherinhalte auf den Datenspeicher aus, die Leistung bricht massiv ein","Neue VMs lassen sich nicht mehr starten, laufende bleiben unberührt","Der Host startet neu"],a:1,
+ e:"Auslagerung bedeutet, dass Arbeitsspeicherzugriffe plötzlich über das Speichersystem laufen. Deshalb ist Überbuchung bei CPU alltäglich, bei Arbeitsspeicher dagegen mit Vorsicht zu planen."},
+{id:"g14",lvl:"tief",t:"virt",q:"Wie funktioniert ein Snapshot technisch?",
+ o:["Es wird eine vollständige Kopie der VM angelegt","Der bisherige Stand wird eingefroren, alle Änderungen landen in einer wachsenden Delta-Datei","Die VM wird kurz angehalten und gesichert","Es werden nur die Metadaten gesichert"],a:1,
+ e:"Deshalb kostet ein Snapshot zunächst kaum Platz, wächst aber mit jeder Änderung. Und deshalb dauert das Zusammenführen nach Tagen oder Wochen entsprechend lange."},
+{id:"g15",lvl:"tief",t:"virt",q:"Warum reicht ein Snapshot für ein anwendungskonsistentes Backup nicht aus?",
+ o:["Weil er zu langsam ist","Weil die Anwendung ihre Puffer erst schreiben muss – ohne dieses Stillstellen ist nur der Dateizustand konsistent","Weil Snapshots keine Datenbanken erfassen","Weil Snapshots nicht übertragbar sind"],a:1,
+ e:"Unter Windows übernimmt das der Schattenkopiedienst, bei Datenbanken gibt es eigene Verfahren. Ohne diesen Schritt bekommt man den Zustand eines abrupten Stromausfalls – oft wiederherstellbar, aber nicht garantiert."},
+{id:"g16",lvl:"tief",t:"virt",q:"Was unterscheidet einen Container von einer virtuellen Maschine?",
+ o:["Container sind kleinere VMs","Container teilen sich den Kernel des Hosts, VMs bringen ein eigenes Betriebssystem mit","Container laufen nur in der Cloud","Container brauchen keinen Speicher"],a:1,
+ e:"Der geteilte Kernel macht Container schlank und schnell startbar, die Abschottung ist dafür schwächer als bei einer VM. In der Praxis laufen Container heute meist innerhalb von VMs."},
+{id:"g17",lvl:"tief",t:"virt",q:"Was sind Affinitäts- und Anti-Affinitätsregeln?",
+ o:["Regeln für die Zugriffsrechte auf VMs","Regeln, die VMs gezielt zusammen oder bewusst getrennt auf Hosts halten","Regeln für die Reihenfolge beim Start","Regeln zur Speicherzuweisung"],a:1,
+ e:"Zwei Knoten eines Datenbankclusters auf demselben Host heben die Redundanz auf. Anti-Affinität verhindert genau das – ohne solche Regeln verschiebt die automatische Lastverteilung sie irgendwann zusammen."},
+{id:"g18",lvl:"tief",t:"virt",q:"Was ist beim Durchreichen einer GPU an eine VM zu beachten?",
+ o:["Die GPU lässt sich auf beliebig viele VMs aufteilen","Die VM ist danach in der Regel nicht mehr live migrierbar","Es wird keine zusätzliche Lizenz benötigt","Der Host verliert den Zugriff auf alle PCIe-Geräte"],a:1,
+ e:"Beim exklusiven Durchreichen hängt die VM an genau dieser physischen Karte. Für Wartung ohne Ausfallzeit braucht es stattdessen geteilte Verfahren, die wiederum eigene Lizenzen verlangen."},
+{id:"g19",lvl:"basis",t:"virt",q:"Was bewirkt der Wartungsmodus eines Hosts?",
+ o:["Der Host wird abgeschaltet","Der Host wird leergeräumt – die VMs ziehen vorher auf andere Hosts um","Alle VMs auf dem Host werden angehalten","Der Host nimmt nur noch neue VMs an"],a:1,
+ e:"So lässt sich Firmware oder Hypervisor aktualisieren, ohne dass VMs ausfallen. Voraussetzung ist genug freie Kapazität auf den übrigen Hosts – das ist der eigentliche Grund für die N+1-Auslegung im Cluster."},
+{id:"g20",lvl:"tief",t:"virt",q:"Wofür stehen Intel VT-x beziehungsweise AMD-V?",
+ o:["Übertaktungsfunktionen","Hardwareunterstützung für Virtualisierung im Prozessor","Verschlüsselungsbefehle","Energiesparmodi"],a:1,
+ e:"Ohne diese Erweiterungen müsste der Hypervisor die Befehle aufwendig nachbilden. Sie sind heute überall vorhanden, können im BIOS aber deaktiviert sein – ein klassischer Stolperstein bei der Erstinstallation."},
+{id:"g21",lvl:"tief",t:"virt",q:"Was ist ein Template beziehungsweise Golden Image?",
+ o:["Eine Sicherungskopie einer VM","Eine vorbereitete Vorlage, aus der neue VMs erzeugt werden","Die Grundkonfiguration des Hypervisors","Ein Snapshot vor einem Update"],a:1,
+ e:"Einmal gepflegt, startet jede neue VM mit demselben Stand an Betriebssystem, Treibern und Grundeinstellungen. Bei VDI ist das zugleich die Grundlage für hohe Deduplizierungsraten."},
+
+{id:"c18",lvl:"basis",t:"srv",q:"Was ist ein BMC?",
+ o:["Ein Verwaltungsprozessor auf dem Mainboard für Fernzugriff unabhängig vom Betriebssystem","Ein Baustein zur Speicherverwaltung","Ein Controller für die Laufwerke","Ein Modul zur Stromversorgung"],a:0,
+ e:"Der Baseboard Management Controller arbeitet auch bei ausgeschaltetem Betriebssystem. Jeder Hersteller hat dafür einen eigenen Namen und eigene Lizenzstufen – die Funktion ist im Kern dieselbe."},
+{id:"c19",lvl:"basis",t:"srv",q:"Wann ist ein Tower-Server gegenüber einem Rack-Server sinnvoll?",
+ o:["Bei besonders hoher Rechenleistung","Wenn kein Serverschrank vorhanden ist, etwa in Filialen oder kleinen Büros","Bei mehr als zwei Prozessoren","Wenn redundante Netzteile gefordert sind"],a:1,
+ e:"Technisch sind beide Bauformen vergleichbar ausgestattet. Entscheidend sind Aufstellungsort, Lautstärke und Kühlung – im Rechenzentrum spricht nichts für Tower."},
+{id:"c20",lvl:"tief",t:"srv",q:"Was beschreibt NUMA?",
+ o:["Ein Verfahren zur Speicherkomprimierung","Jeder Prozessor hat eigenen lokalen Speicher – Zugriffe auf den Speicher des anderen Sockels sind langsamer","Die Anzahl der Speicherkanäle","Ein Protokoll zwischen den Sockeln"],a:1,
+ e:"Eine VM, die größer ist als ein NUMA-Knoten, greift zwangsläufig über die Sockelgrenze zu und verliert Leistung. Bei großen VMs gehört die Bestückung deshalb zur Auslegung dazu."},
+{id:"c21",lvl:"tief",t:"srv",q:"Was leistet Secure Boot?",
+ o:["Es verschlüsselt die Festplatten","Es prüft beim Start jede geladene Komponente gegen hinterlegte Signaturen","Es beschleunigt den Startvorgang","Es sichert die Firmware-Einstellungen"],a:1,
+ e:"Damit wird verhindert, dass manipulierter Code vor dem Betriebssystem geladen wird. Die Hersteller setzen zusätzlich eigene, in Hardware verankerte Prüfungen darüber."},
+{id:"c22",lvl:"tief",t:"srv",q:"Wofür ist ein TPM im Server da?",
+ o:["Zur Überwachung der Temperatur","Als sicherer Speicher für kryptografische Schlüssel","Zur Verwaltung der Netzteile","Als Cache für den RAID-Controller"],a:1,
+ e:"Das Trusted Platform Module hält Schlüssel so, dass sie das Modul nicht verlassen. Festplattenverschlüsselung und manche Compliance-Anforderungen setzen es voraus – es gehört also in die Konfiguration."},
+{id:"c23",lvl:"tief",t:"srv",q:"Warum ist die PCIe-Generation bei Netzwerk- und Speicheradaptern relevant?",
+ o:["Wegen der Treiberunterstützung","Weil ein zu langsamer oder zu schmaler Steckplatz die Leistung der Karte begrenzt","Wegen der Stromaufnahme","Wegen der Baulänge der Karte"],a:1,
+ e:"Eine 100-GbE-Karte braucht entsprechend viele Lanes der passenden Generation, sonst erreicht sie ihre Rate nie. Steckplatzbelegung und Lane-Aufteilung stehen in den technischen Unterlagen und gehören geprüft."},
+{id:"c24",lvl:"tief",t:"srv",q:"Was bedeutet Hot-Plug?",
+ o:["Komponenten lassen sich im laufenden Betrieb tauschen","Komponenten werden im Betrieb automatisch erkannt, aber erst nach Neustart genutzt","Komponenten werden vorgewärmt","Die Stromversorgung bleibt beim Tausch an"],a:0,
+ e:"Üblich ist das bei Laufwerken, Netzteilen und Lüftern. Nicht alles ist hot-plug-fähig – bei Erweiterungskarten und Arbeitsspeicher gilt das in aller Regel nicht."},
+{id:"c25",lvl:"tief",t:"srv",q:"Warum sollten Firmware- und Treiberstände aufeinander abgestimmt sein?",
+ o:["Weil sonst die Garantie erlischt","Weil nur geprüfte Kombinationen aus Firmware, Treiber und Betriebssystem unterstützt werden","Weil ältere Firmware schneller ist","Weil der Hersteller das vorschreibt"],a:1,
+ e:"Hersteller geben ganze Pakete frei, keine Einzelversionen. Abweichende Kombinationen sind eine der häufigsten Ursachen für sporadische Fehler – und im Supportfall das erste, was geprüft wird."},
+{id:"c26",lvl:"tief",t:"srv",q:"Wozu dient die Pufferung des Schreibcaches an einem RAID-Controller?",
+ o:["Zur Beschleunigung von Lesezugriffen","Damit bei Stromausfall die noch nicht geschriebenen Daten im Cache nicht verloren gehen","Zur Verschlüsselung des Caches","Zur Erweiterung der Kapazität"],a:1,
+ e:"Ohne Akku oder Flash-Absicherung muss der Schreibcache abgeschaltet bleiben, sonst drohen Datenverluste. Das kostet spürbar Schreibleistung – die Absicherung gehört deshalb in jede Konfiguration mit RAID-Controller."}
 ];
 
 const KEY="sp-trainer-v1";
-let stats={}, recent=[], cfg={lvl:"basis", n:10, topic:"alle"};
+let stats={}, recent=[], cfg={lvl:"basis", n:10, topics:["alle"], vend:"alle"};
 try{ const raw=localStorage.getItem(KEY); if(raw){ const p=JSON.parse(raw); stats=p.stats||{}; recent=p.recent||[]; if(p.cfg) cfg=Object.assign(cfg,p.cfg);} }catch(e){}
+if(!Array.isArray(cfg.topics)) cfg.topics = cfg.topic ? [cfg.topic] : ["alle"];
+delete cfg.topic;
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify({stats,recent,cfg})); }catch(e){} }
 
 const $=id=>document.getElementById(id);
 let round=[], idx=0, answered=false, missed=[], results=[];
 
+const GROUPS={"@storage":["proto","kap","ded"]};
 function topicOf(q){ return q.t || "proto"; }
+function sel(){ return (Array.isArray(cfg.topics) && cfg.topics.length) ? cfg.topics : ["alle"]; }
+function expand(t){
+  const out=[];
+  t.forEach(x=>{ (GROUPS[x]||[x]).forEach(y=>{ if(out.indexOf(y)<0) out.push(y); }); });
+  return out;
+}
+function vendOk(q){
+  if(cfg.vend==="neutral") return !q.v;
+  if(cfg.vend==="only") return !!q.v;
+  return true;
+}
 function pool(){
+  const t=expand(sel()), all=t.indexOf("alle")>-1;
   return POOL.filter(q =>
     (cfg.lvl==="alle" || q.lvl==="basis") &&
-    (cfg.topic==="alle" || topicOf(q)===cfg.topic));
+    (all || t.indexOf(topicOf(q))>-1) && vendOk(q));
 }
 function weight(q){
   const s=stats[q.id]||{r:0,w:0};
@@ -843,7 +961,35 @@ function segInit(el,key,cast){
   });
   [...el.children].forEach(c=>c.setAttribute("aria-pressed", String(c.dataset.v===String(cfg[key]))));
 }
-segInit($("segTopic"),"topic",v=>v);
+function paintTopics(){
+  const t=sel(), e=expand(t);
+  [...$("segTopic").children].forEach(c=>{
+    const v=c.dataset.v;
+    const on = GROUPS[v] ? GROUPS[v].every(x=>e.indexOf(x)>-1) : t.indexOf(v)>-1;
+    c.setAttribute("aria-pressed", String(on));
+  });
+}
+$("segTopic").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  const v=b.dataset.v;
+  let t=sel().slice();
+  if(v==="alle"){ t=["alle"]; }
+  else if(GROUPS[v]){
+    t=t.filter(x=>x!=="alle");
+    const e=expand(t), on=GROUPS[v].every(x=>e.indexOf(x)>-1);
+    t=t.filter(x=>GROUPS[v].indexOf(x)<0 && x!==v);
+    if(!on) t=t.concat(GROUPS[v]);
+    if(!t.length) t=["alle"];
+  }
+  else{
+    t=t.filter(x=>x!=="alle");
+    t = t.indexOf(v)>-1 ? t.filter(x=>x!==v) : t.concat([v]);
+    if(!t.length) t=["alle"];
+  }
+  cfg.topics=t; save(); paintTopics(); info();
+});
+paintTopics();
+segInit($("segVend"),"vend",v=>v);
 segInit($("segLevel"),"lvl",v=>v);
 segInit($("segCount"),"n",v=>parseInt(v,10));
 
@@ -866,6 +1012,7 @@ function start(list){
 $("go").onclick=()=>start(draw(cfg.n));
 $("again").onclick=()=>start(draw(cfg.n));
 $("home").onclick=()=>{ info(); show("start"); };
+$("back").onclick=()=>{ info(); show("start"); };
 $("redo").onclick=()=>start(missed.map(q=>q));
 $("reset").onclick=()=>{ stats={}; recent=[]; save(); info(); };
 
@@ -877,8 +1024,8 @@ function render(){
   }).join("");
   $("pos").textContent="Frage "+(idx+1)+" von "+round.length;
   const tp=topicOf(q);
-  const LBL={hpe:"HPE-Portfolio", szen:"Kundenszenario", kap:"Kapazität & RAID", bak:"Backup & Hochverfügbarkeit", srv:"Server & Verkabelung", ded:"Datenreduktion", virt:"Virtualisierung"};
-  $("tag").textContent = LBL[tp] || (q.lvl==="basis" ? "Grundlagen" : "Vertiefung");
+  const LBL={proto:"Storage & Protokolle", kap:"Kapazität & RAID", ded:"Datenreduktion", srv:"Compute", virt:"Virtualisierung", bak:"Backup & Hochverfügbarkeit", szen:"Konzeption"};
+  $("tag").textContent = q.v==="hpe" ? "HPE" : q.v==="vmw" ? "VMware & Nutanix" : (LBL[tp] || "Grundlagen");
   $("qtext").textContent=q.q;
   const keys=["A","B","C","D"];
   $("opts").innerHTML = cur.opts.map((o,i)=>

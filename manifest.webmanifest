@@ -1,7 +1,7 @@
 {
-  "name": "Storage-Trainer",
-  "short_name": "Storage",
-  "description": "Lerntrainer fuer Storage-Protokolle, Kapazitaet, Backup, Server und HPE-Portfolio",
+  "name": "Solution Trainer",
+  "short_name": "Solution Trainer",
+  "description": "Lerntrainer fuer Storage, Compute, Virtualisierung, Backup und Loesungskonzeption",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
